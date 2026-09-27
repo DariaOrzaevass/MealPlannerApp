@@ -1,0 +1,13 @@
+<Project>
+  <!--
+  centralized versions of packages for the project
+  -->
+
+  <PropertyGroup>
+    <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageVersion Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.24.1-preview.1" />
+  </ItemGroup>
+</Project>
