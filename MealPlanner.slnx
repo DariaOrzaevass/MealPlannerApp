@@ -3,6 +3,7 @@
     <File Path=".editorconfig" />
     <File Path="Directory.Build.props" />
     <File Path="Directory.Packages.props" />
+    <File Path="NuGet.config" />
   </Folder>
   <Folder Name="/src/">
     <Project Path="src/MealPlanner.Application/MealPlanner.Application.csproj" />
@@ -10,4 +11,7 @@
     <Project Path="src/MealPlanner.Infrastructure/MealPlanner.Infrastructure.csproj" />
     <Project Path="src/MealPlanner.Web/MealPlanner.Web.csproj" />
   </Folder>
+  <Project Path="docker-compose.dcproj">
+    <Build />
+  </Project>
 </Solution>
