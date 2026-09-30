@@ -5,7 +5,7 @@ using System.Text;
 namespace MealPlanner.Domain.Abstractions;
 
 //All entities will implement this interface
-internal interface IEntity
+public interface IEntity
 {
     //Returns the domain events of the entity
     IReadOnlyCollection<IDomainEvent> GetDomainEvents();

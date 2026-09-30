@@ -5,7 +5,7 @@ using System.Text;
 namespace MealPlanner.Domain.Abstractions;
 
 //Interface for domain events
-internal interface IDomainEvent
+public interface IDomainEvent
 {
     //Id of the domain event
     Guid Id { get; }
