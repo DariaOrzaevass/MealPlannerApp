@@ -5,13 +5,13 @@ using System.Text;
 namespace MealPlanner.Domain.Abstractions;
 
 
-//Domain error record
+// Domain error record
 public record Error(string Code, string Description, ErrorType Type)
 {
-    //To show that there has been no error
+    // To show that there has been no error
     public static readonly Error None = new(string.Empty, string.Empty, ErrorType.Failure);
 
-    //Default error with null values
+    // Default error with null values
     public static readonly Error NullValue =
     new("General.Null", "Empty value.", ErrorType.Failure);
 

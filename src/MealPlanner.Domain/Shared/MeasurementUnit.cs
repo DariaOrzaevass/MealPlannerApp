@@ -4,7 +4,7 @@ using System.Text;
 
 namespace MealPlanner.Domain.Shared;
 
-//Measurement unit of the ingredients in the dish
+// Measurement unit of the ingredients in the dish
 public enum MeasurementUnit
 {
     Gram = 0,

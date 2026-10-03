@@ -4,21 +4,21 @@ using System.Text;
 
 namespace MealPlanner.Domain.Abstractions;
 
-//Types of errors
+// Types of errors
 public enum ErrorType
 {
-    //Generic error. Will turn into 500
+    // Generic error. Will turn into 500
     Failure = 0,
 
-    //Validation error. Will turn into 400
+    // Validation error. Will turn into 400
     Validation = 1,
 
-    //Correct request, but cannot complete it. Will turn into 400
+    // Correct request, but cannot complete it. Will turn into 400
     Problem = 2,
 
-    //Resource not found. Will turn into 404
+    // Resource not found. Will turn into 404
     NotFound = 3,
 
-    //Conflict with current state of recource. Will turn into 409
+    // Conflict with current state of resource. Will turn into 409
     Conflict = 4,
 }

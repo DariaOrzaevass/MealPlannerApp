@@ -4,15 +4,15 @@ using System.Text;
 
 namespace MealPlanner.Domain.Shared;
 
-//The diet type of the dish
+// The diet type of the dish
 public enum DietType
 {
-    //Can eat anything
+    // Can eat anything
     Omnivore = 0,
 
-    //Excludes meat and fish
+    // Excludes meat and fish
     Vegetarian = 1,
 
-    //Excludes all animal products
+    // Excludes all animal products
     Vegan = 2
 }

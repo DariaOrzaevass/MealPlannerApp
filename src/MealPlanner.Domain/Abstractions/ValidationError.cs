@@ -4,7 +4,7 @@ using System.Text;
 
 namespace MealPlanner.Domain.Abstractions;
 
-//Composite error record
+// Composite error record
 public sealed record ValidationError(Error[] Errors)
     : Error("Validation.Error", "Input data is invalid", ErrorType.Validation)
 {

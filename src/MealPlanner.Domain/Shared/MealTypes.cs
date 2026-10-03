@@ -4,11 +4,11 @@ using System.Text;
 
 namespace MealPlanner.Domain.Shared;
 
-//The type of the specific meal
+// The type of the specific meal
 [Flags]
 public enum MealTypes
 {
-    //Does not fit for any type of meal
+    // Does not fit for any type of meal
     None = 0,
 
     Breakfast = 1,
@@ -19,6 +19,6 @@ public enum MealTypes
 
     Snack = 8,
 
-    //Will fit for any type of meal
+    // Will fit for any type of meal
     All = Breakfast | Lunch | Dinner | Snack
 }

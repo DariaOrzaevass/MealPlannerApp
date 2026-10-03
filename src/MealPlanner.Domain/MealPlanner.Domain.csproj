@@ -1,1 +1,7 @@
-﻿<Project Sdk="Microsoft.NET.Sdk" />
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <ItemGroup>
+    <Folder Include="Ingredients\" />
+    <Folder Include="Dishes\" />
+    <Folder Include="MealPlans\" />
+  </ItemGroup>
+</Project>

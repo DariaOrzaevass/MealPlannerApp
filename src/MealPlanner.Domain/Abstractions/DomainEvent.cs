@@ -4,7 +4,7 @@ using System.Text;
 
 namespace MealPlanner.Domain.Abstractions;
 
-//Abstract basic record for domain events
+// Abstract basic record for domain events
 public abstract record DomainEvent : IDomainEvent
 {
     public Guid Id { get; init; } = Guid.CreateVersion7();

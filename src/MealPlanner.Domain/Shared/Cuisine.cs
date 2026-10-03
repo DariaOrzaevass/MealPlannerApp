@@ -5,7 +5,7 @@ using System.Text;
 
 namespace MealPlanner.Domain.Shared;
 
-//Types of cuisines of the dishes
+// Types of cuisines of the dishes
 public enum Cuisine
 {
     Other = 0,

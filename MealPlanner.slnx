@@ -9,6 +9,7 @@
     <Project Path="src/MealPlanner.Application/MealPlanner.Application.csproj" />
     <Project Path="src/MealPlanner.Domain/MealPlanner.Domain.csproj" />
     <Project Path="src/MealPlanner.Infrastructure/MealPlanner.Infrastructure.csproj" />
+    <Project Path="src/MealPlanner.Planning/MealPlanner.Planning.csproj" Id="ada0bf64-ccc5-4163-ac1b-2c9e122d0707" />
     <Project Path="src/MealPlanner.Web/MealPlanner.Web.csproj" />
   </Folder>
   <Project Path="docker-compose.dcproj">
