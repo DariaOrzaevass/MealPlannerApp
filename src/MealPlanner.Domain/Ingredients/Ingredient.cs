@@ -20,7 +20,7 @@ public sealed class Ingredient : Entity<IngredientId>
         Category = category;
     }
 
-    // Default constructor for EF core to get allergen from the database
+    // Default constructor for EF core to get the ingredient from the database
     private Ingredient()
     {
     }

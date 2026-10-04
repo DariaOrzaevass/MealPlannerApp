@@ -17,7 +17,7 @@ public sealed class Allergen : Entity<AllergenId>
         BitPosition = bitPosition;
     }
 
-    // Default constructor for EF core to get allergen from the database
+    // Default constructor for EF core to get the allergen from the database
     private Allergen()
     {
     }
