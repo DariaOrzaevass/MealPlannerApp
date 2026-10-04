@@ -38,4 +38,11 @@ public sealed class DishIngredient
 
     // The meausurement units in which amount is specified
     public MeasurementUnit Unit { get; private set; }
+
+    // Changes quantity of the ingredient
+    internal void ChangeQuantity(decimal quantity, MeasurementUnit unit)
+    {
+        Quantity = quantity;
+        Unit = unit;
+    }
 }
