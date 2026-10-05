@@ -26,6 +26,7 @@ public sealed class MealPlanEntry : Entity<MealPlanEntryId>
         MealType = mealType;
         DishId = dishId;
         Cost = cost;
+        IsLocked = false;
     }
     // Default constructor for EF core to get the Meal Plan Entry from the database
     private MealPlanEntry()
@@ -46,4 +47,20 @@ public sealed class MealPlanEntry : Entity<MealPlanEntryId>
 
     // The cost of the specific dish in the moment of the creation of meal plan
     public Money Cost { get; private set; } = null!;
+    
+    // Is position locked by the user
+    public bool IsLocked { get; private set; }
+
+    // Locks the position
+    internal void Lock() => IsLocked = true;
+
+    // Unlocks the position
+    internal void Unlock() => IsLocked = false;
+
+    // Replace the dish
+    internal void Replace(DishId dishId, Money cost)
+    {
+        DishId = dishId;
+        Cost = cost;
+    }
 }
