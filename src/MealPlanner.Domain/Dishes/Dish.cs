@@ -183,4 +183,48 @@ public sealed class Dish : Entity<DishId>
             ? Result.Failure(DishErrors.IngredientNotFound)
             : Result.Success();
     }
+
+    // Changes the cost of the dish if the new one is not negative
+    public Result ChangeCost(Money cost)
+    {
+        if (cost.Amount < 0)
+        {
+            return Result.Failure(DishErrors.NegativeCost);
+        }
+
+        Cost = cost;
+
+        return Result.Success();
+    }
+
+    // Publishes the dish after making sure that it has ingredients and raises the domain event
+    public Result Publish()
+    {
+        if (_ingredients.Count == 0)
+        {
+            return Result.Failure(DishErrors.NoIngredients);
+        }
+
+        if (IsPublished)
+        {
+            return Result.Success();
+        }
+
+        IsPublished = true;
+        RaiseDomainEvent(new DishPublishedDomainEvent(Id));
+
+        return Result.Success();
+    }
+
+    // Unpublishes the dish and raises the domain event
+    public void Unpublish()
+    {
+        if (!IsPublished)
+        {
+            return;
+        }
+
+        IsPublished = false;
+        RaiseDomainEvent(new DishUnpublishedDomainEvent(Id));
+    }
 }
