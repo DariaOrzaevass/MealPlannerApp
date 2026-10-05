@@ -13,6 +13,6 @@ public sealed record DishId(Guid Value)
     // To create an DishId from existing Guid, when retrieving it from the database
     public static DishId From(Guid value) => new(value);
 
-    // Overrides ToString to put DishtId later in a readable format for database
+    // Overrides ToString to put DishId later in a readable format for database
     public override string ToString() => Value.ToString();
 }
