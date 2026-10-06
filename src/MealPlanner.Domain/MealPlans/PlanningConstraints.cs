@@ -117,6 +117,32 @@ public sealed record PlanningConstraints
             return Result.Failure<PlanningConstraints>(MealPlanErrors.NoMealsSelected);
         }
 
+        if (mealsPerDay.Distinct().Count() != mealsPerDay.Count)
+        {
+            return Result.Failure<PlanningConstraints>(MealPlanErrors.DuplicateMealType);
+        }
+
+        if (maxRepeatsPerPlan < 1)
+        {
+            return Result.Failure<PlanningConstraints>(MealPlanErrors.NonPositiveMaxRepeats);
+        }
+
+        if (minDaysBetweenRepeats < 0)
+        {
+            return Result.Failure<PlanningConstraints>(MealPlanErrors.NegativeRepeatGap);
+        }
+
+        if (minDailyCalories is not null && maxDailyCalories is not null &&
+            minDailyCalories > maxDailyCalories)
+        {
+            return Result.Failure<PlanningConstraints>(MealPlanErrors.InvertedCalorieRange);
+        }
+
+        if (maxCookingTimeMinutes is <= 0)
+        {
+            return Result.Failure<PlanningConstraints>(MealPlanErrors.NonPositiveCookingTimeLimit);
+        }
+
         return new PlanningConstraints(
             budget,
             durationDays,

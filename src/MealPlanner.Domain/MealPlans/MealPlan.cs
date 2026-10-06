@@ -21,13 +21,15 @@ public sealed class MealPlan : Entity<MealPlanId>
     UserId userId,
     string name,
     DateOnly startDate,
-    PlanningConstraints constraints)
+    PlanningConstraints constraints,
+    PlannerAlgorithm algorithm)
     : base(id)
     {
         UserId = userId;
         Name = name;
         StartDate = startDate;
         Constraints = constraints;
+        Algorithm = algorithm;
         CreatedOnUtc = DateTime.UtcNow;
     }
 
@@ -47,6 +49,9 @@ public sealed class MealPlan : Entity<MealPlanId>
 
     // Constraints of the plan (budget and etc.)
     public PlanningConstraints Constraints { get; private set; } = null!;
+
+    // The algorithm that was used for creation of this meal plan
+    public PlannerAlgorithm Algorithm { get; private set; }
 
     // When the plan was created
     public DateTime CreatedOnUtc { get; private set; }
