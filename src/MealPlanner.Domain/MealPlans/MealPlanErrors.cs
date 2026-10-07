@@ -54,4 +54,33 @@ public static class MealPlanErrors
     // Returns an error if there is a mismatch between plan items and slots available
     public static readonly Error SlotCountMismatch =
         Error.Problem("MealPlan.SlotCountMismatch", "The number of plan items does not match the number of slots.");
+
+    // returns an error if a second plan item is generated for the same slot
+    public static readonly Error DuplicateSlot =
+        Error.Problem("MealPlan.DuplicateSlot", "Two plan items are generated for the same slot.");
+
+    // Returns an error if the plan item is created for the slot outside of the duration of the meal plan
+    public static readonly Error SlotOutOfRange =
+        Error.Problem("MealPlan.SlotOutOfRange", "The plan item does not match the duration of the plan.");
+
+    // Returns an error if there is the entry is not found
+    public static readonly Error EntryNotFound =
+        Error.NotFound("MealPlan.EntryNotFound", "The entry is not found in the meal plan.");
+
+    // Returns an error if the locked dish was changed in meal regeneration
+    public static readonly Error LockedEntryChanged =
+       Error.Failure(
+           "MealPlan.LockedEntryChanged", "Regenerated plan changed the locked entry.");
+
+    // Returns an error if something is trying to change a locked entry
+    public static readonly Error EntryLocked =
+        Error.Conflict("MealPlan.EntryLocked", "The entry was locked and cannot be regenerated.");
+
+    // Returns an error if the total cost exceeds the budget after regeneration
+    public static readonly Error BudgetExceeded =
+        Error.Problem("MealPlan.BudgetExceeded", "After regeneration the total cost exceeds the budget.");
+
+    // Returns an error if after the regeneration the same dish is returned
+    public static readonly Error SameDish =
+        Error.Problem("MealPlan.SameDish", "The regenerated dish is the same with the previous one.");
 }

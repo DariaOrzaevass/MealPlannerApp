@@ -140,6 +140,28 @@ public sealed class MealPlan : Entity<MealPlanId>
             return Result.Failure(MealPlanErrors.SlotCountMismatch);
         }
 
+        // Set that stores unique combinations of a day (1, 2...) and
+        // a type of meal (Breakfast etc.) with capacity of the number of drafts (drafts.Count)
+        var seen = new HashSet<(int Day, MealType Meal)>(drafts.Count);
+
+        foreach (MealPlanEntryDraft draft in drafts)
+        {
+            if (draft.DayNumber < 1 || draft.DayNumber > constraints.DurationDays)
+            {
+                return Result.Failure(MealPlanErrors.SlotOutOfRange);
+            }
+
+            if (!constraints.MealsPerDay.Contains(draft.MealType))
+            {
+                return Result.Failure(MealPlanErrors.SlotOutOfRange);
+            }
+
+            if (!seen.Add((draft.DayNumber, draft.MealType)))
+            {
+                return Result.Failure(MealPlanErrors.DuplicateSlot);
+            }
+        }
+
         return Result.Success();
     }
 }
