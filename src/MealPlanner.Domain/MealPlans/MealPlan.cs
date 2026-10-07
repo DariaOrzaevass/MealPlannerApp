@@ -4,6 +4,7 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Xml.Linq;
 using MealPlanner.Domain.Abstractions;
+using MealPlanner.Domain.MealPlans.Events;
 using MealPlanner.Domain.Shared;
 using MealPlanner.Domain.Users;
 
@@ -22,7 +23,9 @@ public sealed class MealPlan : Entity<MealPlanId>
     string name,
     DateOnly startDate,
     PlanningConstraints constraints,
-    PlannerAlgorithm algorithm)
+    PlannerAlgorithm algorithm,
+    long generationMs,
+    long exploredNodes)
     : base(id)
     {
         UserId = userId;
@@ -31,6 +34,9 @@ public sealed class MealPlan : Entity<MealPlanId>
         Constraints = constraints;
         Algorithm = algorithm;
         CreatedOnUtc = DateTime.UtcNow;
+        GenerationMs = generationMs;
+        ExploredNodes = exploredNodes;
+        TotalCost = Money.Zero(constraints.Budget.Currency);
     }
 
     // Default constructor for EF core to get the Meal Plan from the database
@@ -56,6 +62,84 @@ public sealed class MealPlan : Entity<MealPlanId>
     // When the plan was created
     public DateTime CreatedOnUtc { get; private set; }
 
+    // For how long (in ms) the plan was generating. For the later comparison of the algorithms performance
+    public long GenerationMs { get; private set; }
+
+    // The amount of explored nodes, needed for algorithms
+    public long ExploredNodes { get; private set; }
+
+    // Total cost of the meal plan
+    public Money TotalCost { get; private set; } = null!;
+
     // The read-only collection of entries(dishes) of the meal plan
     public IReadOnlyCollection<MealPlanEntry> Entries => _entries.AsReadOnly();
+
+    // Creates a new meal plan and raises a domain event after checking the input
+    public static Result<MealPlan> Create(
+        UserId userId,
+        string name,
+        DateOnly startDate,
+        PlanningConstraints constraints,
+        IReadOnlyCollection<MealPlanEntryDraft> drafts,
+        PlannerAlgorithm algorithm,
+        long generationMs,
+        long exploredNodes = 0)
+    {
+        if (string.IsNullOrWhiteSpace(name))
+        {
+            return Result.Failure<MealPlan>(MealPlanErrors.EmptyName);
+        }
+
+        Result layout = ValidateLayout(constraints, drafts);
+
+        if (layout.IsFailure)
+        {
+            return Result.Failure<MealPlan>(layout.Error);
+        }
+
+        var plan = new MealPlan(
+            MealPlanId.New(),
+            userId,
+            name.Trim(),
+            startDate,
+            constraints,
+            algorithm,
+            generationMs,
+            exploredNodes);
+
+        foreach (MealPlanEntryDraft draft in drafts)
+        {
+            plan._entries.Add(new MealPlanEntry(
+                MealPlanEntryId.New(),
+                plan.Id,
+                draft.DayNumber,
+                draft.MealType,
+                draft.DishId,
+                draft.Cost));
+        }
+
+        plan.RecalculateTotal();
+        plan.RaiseDomainEvent(new MealPlanGeneratedDomainEvent(plan.Id, algorithm, generationMs));
+
+        return plan;
+    }
+
+    // Recalculates the total cost of the plan
+    private void RecalculateTotal() =>
+    TotalCost = _entries.Aggregate(
+        Money.Zero(Constraints.Budget.Currency),
+        (acc, entry) => acc + entry.Cost);
+
+    // Validates the input
+    private static Result ValidateLayout(
+        PlanningConstraints constraints,
+        IReadOnlyCollection<MealPlanEntryDraft> drafts)
+    {
+        if (drafts.Count != constraints.SlotCount)
+        {
+            return Result.Failure(MealPlanErrors.SlotCountMismatch);
+        }
+
+        return Result.Success();
+    }
 }

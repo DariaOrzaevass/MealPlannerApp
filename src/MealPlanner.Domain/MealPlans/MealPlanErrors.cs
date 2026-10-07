@@ -46,4 +46,12 @@ public static class MealPlanErrors
     // Returns an error if the minimum cooking time is negative
     public static readonly Error NonPositiveCookingTimeLimit =
        Error.Validation("MealPlan.NonPositiveCookingTimeLimit", "Cooking time must be positive.");
+
+    // Returns an error if the name of the meal plan is empty
+    public static readonly Error EmptyName =
+        Error.Validation("MealPlan.EmptyName", "The name of the plan cannot be empty");
+
+    // Returns an error if there is a mismatch between plan items and slots available
+    public static readonly Error SlotCountMismatch =
+        Error.Problem("MealPlan.SlotCountMismatch", "The number of plan items does not match the number of slots.");
 }
