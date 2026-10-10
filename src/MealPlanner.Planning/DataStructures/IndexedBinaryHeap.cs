@@ -16,7 +16,7 @@ public sealed class IndexedBinaryHeap<TPriority>
     // The amount of children of the node. 2 - for the standard binary heap
     private readonly int _arity;
 
-    // The heap itself in the structure right now (id). size - number of dishes
+    // The heap itself in the structure right now (id). Size - number of dishes
     private readonly int[] _heap;
 
     // the position in the tree. if not in it -1, if the top node - 0, then 1, 2...
@@ -116,6 +116,21 @@ public sealed class IndexedBinaryHeap<TPriority>
 
         // If the new element is less than its parent, we need to shift it up
         ShiftUp(Count - 1);
+    }
+
+    // Get id with the minimum priority without popping it
+    public int PeekMin()
+    {
+        ThrowIfEmpty();
+        return _heap[0];
+    }
+
+    // Get the minimum priority in the heap
+    public TPriority PeekMinPriority()
+    {
+        ThrowIfEmpty();
+
+        return _priority[_heap[0]]!;
     }
 
     // Get the id with minimum priority
@@ -220,6 +235,99 @@ public sealed class IndexedBinaryHeap<TPriority>
 
         _heap[index] = id;
         _position[id] = index;
+    }
+
+    // Decrease Key operation for decreasing priority. Crucial for the Dijkstra's algorithm
+    public void DecreaseKey(int id, TPriority newPriority)
+    {
+        ValidateId(id);
+        // Where the dish is in the tree, do not need to search the tree
+        int index = _position[id];
+
+        // Id is not in the heap -nothing to decrease key for
+        if (index == NotInHeap)
+        {
+            throw new InvalidOperationException($"Identifier {id} is not in the heap.");
+        }
+
+        // Cannot shift anything down the tree (increase key),
+        // but the new priority is not less than the previous one
+        if (newPriority.CompareTo(_priority[id]!) >= 0)
+        {
+            throw new InvalidOperationException(
+                "The new priority is not less than the current one. A min-heap cannot increase a key.");
+        }
+
+        // The elements gets the new priority and can now have a
+        // smaller one than its parents - needs to be shifted up
+        _priority[id] = newPriority;
+        ShiftUp(index);
+    }
+
+    // Push a new element in the heap or decrease its priority. Useful for Dijkstra
+    public bool PushOrDecrease(int id, TPriority priority)
+    {
+        ValidateId(id);
+
+        // The element is not in the keap, just pushing it there
+        if (_position[id] == NotInHeap)
+        {
+            Push(id, priority);
+
+            return true;
+        }
+
+        // The element is already in the heap and the
+        // new priority is not better than the old one
+        if (priority.CompareTo(_priority[id]!) >= 0)
+        {
+            return false;
+        }
+
+        // The element is in the heap, the new priority is better than
+        // the old one - use DecreaseKey and not put a duplicate
+        DecreaseKey(id, priority);
+
+        return true;
+    }
+
+    // Clearing the heap of elements with keeping the allocated memory
+    public void Clear()
+    {
+        // Work only with elements that are in the heap right now
+        for (int i = 0; i < Count; i++)
+        {
+            _position[_heap[i]] = NotInHeap;
+        }
+
+        Count = 0;
+    }
+
+    // For future testing. Checks whether the heap is valid.
+    // Priority of the parent cannot be more than its children's
+    internal bool IsHeapValid()
+    {
+        for (int i = 0; i < Count; i++)
+        {
+            // Verify that the position of the element and the element in this position are consistent
+            if (_position[_heap[i]] != i)
+            {
+                return false;
+            }
+
+            int firstChild = (i * _arity) + 1;
+
+            for (int c = firstChild; c < firstChild + _arity && c < Count; c++)
+            {
+                // The parent node has bigger priority than its child's - heap is not valid
+                if (_priority[_heap[i]]!.CompareTo(_priority[_heap[c]]!) > 0)
+                {
+                    return false;
+                }
+            }
+        }
+
+        return true;
     }
 
 }
