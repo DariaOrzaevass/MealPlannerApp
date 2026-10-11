@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
+using MealPlanner.Planning.DataStructures;
 
 namespace MealPlanner.Planning.Models;
 
@@ -8,10 +9,17 @@ namespace MealPlanner.Planning.Models;
 public sealed class PlanningProblem
 {
     // Private constructor so that the Planning Problem can only be created using the Create method with validation
-    private PlanningProblem()
+    private PlanningProblem(
+        DishCatalog catalog,
+        DishIndex index)
     {
-
+        Catalog = catalog;
+        Index = index;
     }
+
+    public DishCatalog Catalog { get; }
+
+    public DishIndex Index { get; }
 
     // Creates a new Planning Problem after validation
     public static PlanningProblem Create()
