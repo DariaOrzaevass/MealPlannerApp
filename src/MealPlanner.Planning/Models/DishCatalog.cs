@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
+using MealPlanner.Planning.DataStructures;
 
 namespace MealPlanner.Planning.Models;
 
@@ -10,6 +11,8 @@ public sealed class DishCatalog
     internal DishCatalog(
         int[] costMinorUnits,
         int[] calories,
+        MealKinds[] suitableFor,
+        AllergenMask[] allergens,
         int[] cookingTimeMinutes,
         int[] dietLevels,
         int[] cuisineIds,
@@ -19,6 +22,8 @@ public sealed class DishCatalog
     {
         CostMinorUnits = costMinorUnits;
         Calories = calories;
+        SuitableFor = suitableFor;
+        Allergens = allergens;
         CookingTimeMinutes = cookingTimeMinutes;
         DietLevels = dietLevels;
         CuisineIds = cuisineIds;
@@ -39,6 +44,12 @@ public sealed class DishCatalog
 
     // Calories of one portion of the dish (in kcal)
     public int[] Calories { get; }
+
+    // Kinds of meal to which the dishes could be suitable
+    public MealKinds[] SuitableFor { get; }
+
+    // The allergen masks of dishes
+    public AllergenMask[] Allergens { get; }
 
     // The coocking time of the dish
     public int[] CookingTimeMinutes { get; }
