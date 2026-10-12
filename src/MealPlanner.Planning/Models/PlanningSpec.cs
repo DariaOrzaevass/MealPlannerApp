@@ -88,7 +88,7 @@ public sealed class PlanningSpec
     // Does this slot has a pinned dish
     public bool IsPinned(int slotIndex) => PinnedSlots[slotIndex] >= 0;
 
-    //
+    // All slots of the 1 day, then 2, then 3...
     public IReadOnlyList<SlotDescriptor> Slots { get; }
 
     // The number of slots
