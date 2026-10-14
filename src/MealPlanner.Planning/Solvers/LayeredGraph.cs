@@ -141,4 +141,65 @@ internal sealed class LayeredGraph
 
         return new LayeredGraph(problem, offsets, nodeDish, nodeLayer);
     }
+
+    // Calculates the cost of choosing node in the first layer
+    public double EntryWeight(int node)
+    {
+        int dish = _nodeDish[node];
+
+        // Returns the cost penalty together with preference penalty and node penalty
+        return CostTerm(dish) + PreferenceTerm(dish) + NodePenalty[node];
+    }
+
+    // The weight of transitioning from one layer to another. Monotony is
+    // added here because now we have at least one dish to compare to
+    public double TransitionWeight(int fromNode, int toNode)
+    {
+        int fromDish = _nodeDish[fromNode];
+        int toDish = _nodeDish[toNode];
+
+        return CostTerm(toDish)
+            + PreferenceTerm(toDish)
+            + MonotonyTerm(fromDish, toDish)
+            + NodePenalty[toNode];
+    }
+
+    // Checks whether transition is allowed
+    public bool IsTransitionAllowed(int fromNode, int toNode)
+    {
+        // If the user hasn't used days before repetition of the dish
+        if (_problem.Spec.MinDaysBetweenRepeats <= 0)
+        {
+            return true;
+        }
+
+        // If two different dishes - no problem with repetition
+        if (_nodeDish[fromNode] != _nodeDish[toNode])
+        {
+            return true;
+        }
+
+        // Gets days where the dishes are located in the meal plan
+        int fromDay = _problem.Spec.Slots[_nodeLayer[fromNode]].Day;
+        int toDay = _problem.Spec.Slots[_nodeLayer[toNode]].Day;
+
+        // Returns whether distance in days between dishes are fitting the minimum allowed
+        return Math.Abs(toDay - fromDay) >= _problem.Spec.MinDaysBetweenRepeats;
+    }
+
+    // Turns the price of the dish ito cost penalty
+    private double CostTerm(int dish) =>
+    (_problem.Weights.Cost + ExtraCostMultiplier)
+    * _problem.Catalog.CostMinorUnits[dish]
+    / _problem.Spec.BudgetMinorUnits;
+
+    // Defines the penalty of not using the cuisine preffered by user
+    private double PreferenceTerm(int dish) =>
+        _problem.Weights.Preference * _problem.PreferencePenalty(dish) / LayerCount;
+
+    // Defines the penalty for consecutive similar dishes
+    private double MonotonyTerm(int fromDish, int toDish) =>
+        LayerCount <= 1
+            ? 0.0
+            : _problem.Weights.Monotony * _problem.Similarity.Between(fromDish, toDish) / (LayerCount - 1);
 }
