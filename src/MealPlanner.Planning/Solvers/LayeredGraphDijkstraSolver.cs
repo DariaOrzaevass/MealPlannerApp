@@ -1,0 +1,44 @@
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Text;
+using MealPlanner.Planning.Models;
+
+namespace MealPlanner.Planning.Solvers;
+
+// The Dijkstra's Algorithm
+public sealed class LayeredGraphDijkstraSolver : IMealPlanSolver
+{
+    private readonly int _heapArity;
+
+    public LayeredGraphDijkstraSolver(int heapArity = 4) => _heapArity = heapArity;
+
+    // the name of the algorithm
+    public string Name => "Dijkstra (Layered Graph)";
+
+    public PlanSolution Solve(PlanningProblem problem, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(problem);
+
+        long start = Stopwatch.GetTimestamp();
+
+        if (problem.Domains.HasEmptyDomain)
+        {
+            return PlanSolution.Infeasible(
+                "There is no available dish for one of the meals.",
+                exploredNodes: 0,
+                Stopwatch.GetTimestamp() - start);
+        }
+
+        // Builds the layered graph based on the problem
+        LayeredGraph graph = LayeredGraph.Build(problem);
+
+        long elapsed = Stopwatch.GetTimestamp() - start;
+
+        // delete later (to be able to compile)
+        return PlanSolution.Infeasible(
+            "There is no available dish for one of the meals.",
+            exploredNodes: 0,
+            Stopwatch.GetTimestamp() - start);
+    }
+}
