@@ -29,7 +29,6 @@ internal sealed class LayeredGraph
         Sink = DishNodeCount + 1;
         NodeCount = DishNodeCount + 2;
         NodePenalty = new double[DishNodeCount];
-
     }
 
     // The number of layers. Is equal to the number of meal plan entries
@@ -107,6 +106,38 @@ internal sealed class LayeredGraph
     public static LayeredGraph Build(PlanningProblem problem)
     {
         ArgumentNullException.ThrowIfNull(problem);
+
+        // Number of layers = Number of slots
+        int layerCount = problem.SlotCount;
+
+        // Where each layer begin
+        var offsets = new int[layerCount + 1];
+
+        // Builds offsets
+        for (int layer = 0; layer < layerCount; layer++)
+        {
+            int domainSize = problem.Domains.ForSlot(problem.Spec.Slots[layer]).Length;
+            offsets[layer + 1] = offsets[layer] + domainSize;
+        }
+
+        // Creates two arrays with one entry per node of the graph
+        // nodeDish for the dish, nodeLayer for the layer(slot) of it 
+        var nodeDish = new int[offsets[layerCount]];
+        var nodeLayer = new int[offsets[layerCount]];
+
+        // Fills the node representing arrays
+        for (int layer = 0; layer < layerCount; layer++)
+        {
+            ReadOnlySpan<int> domain = problem.Domains.ForSlot(problem.Spec.Slots[layer]);
+            int write = offsets[layer];
+
+            foreach (int dish in domain)
+            {
+                nodeDish[write] = dish;
+                nodeLayer[write] = layer;
+                write++;
+            }
+        }
 
         return new LayeredGraph(problem, offsets, nodeDish, nodeLayer);
     }
