@@ -32,8 +32,18 @@ public sealed class LayeredGraphDijkstraSolver : IMealPlanSolver
 
         // Builds the layered graph based on the problem
         LayeredGraph graph = LayeredGraph.Build(problem);
+        LayeredShortestPath.Result path = LayeredShortestPath.Run(graph, _heapArity, cancellationToken);
 
         long elapsed = Stopwatch.GetTimestamp() - start;
+
+        // If the path was not found there is no solution
+        if (!path.Found)
+        {
+            return PlanSolution.Infeasible(
+                "There is no path in the layered graph. ",
+                path.ExploredNodes,
+                elapsed);
+        }
 
         // delete later (to be able to compile)
         return PlanSolution.Infeasible(
