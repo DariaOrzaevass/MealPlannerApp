@@ -28,7 +28,7 @@ public enum ConstraintViolation
     // The cooking time is more than allowed
     CookingTime,
 
-    // the total cost of the meal plan exceed the budget
+    // The total cost of the meal plan exceed the budget
     Budget,
 
     // The dish is repeated more times than allowed
@@ -37,7 +37,7 @@ public enum ConstraintViolation
     // The repeat gap between using the same dish is less than allowed
     RepeatGap,
 
-    // Total calories of the plan are not in the allowed range
+    // Total calories for this day are not in the allowed range
     DailyCalories,
 
     // The pinned slot contains another dish that is pinned to it

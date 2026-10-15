@@ -45,6 +45,24 @@ public sealed class LayeredGraphDijkstraSolver : IMealPlanSolver
                 elapsed);
         }
 
+        ConstraintViolation violation = ConstraintValidator.Validate(problem, path.Assignment);
+
+        if (violation != ConstraintViolation.None)
+        {
+            return PlanSolution.Exhausted(
+                $"The shortest path violates the constraint that cannot be expressed by weight: {violation}.",
+                path.ExploredNodes,
+                elapsed);
+        }
+
+        int totalCost = 0;
+
+        // Total cost
+        foreach (int dish in path.Assignment)
+        {
+            totalCost += problem.Catalog.CostMinorUnits[dish];
+        }
+
         // delete later (to be able to compile)
         return PlanSolution.Infeasible(
             "There is no available dish for one of the meals.",

@@ -30,7 +30,7 @@ public static class ConstraintValidator
 
         //Calories for each day separately(day 1, day 2 so spec.DurationDays + 1)
         var caloriesPerDay = new int[spec.DurationDays + 1];
-        //long totalCost = 0;
+        long totalCost = 0;
 
         // Processes all meal plan slots
         for (int slotIndex = 0; slotIndex < assignment.Length; slotIndex++)
@@ -86,9 +86,47 @@ public static class ConstraintValidator
             {
                 return ConstraintViolation.CookingTime;
             }
+
+            // Checks if the current dish has been used too soon
+            if (DayMask.ViolatesGap(usedDays[dish], slot.Day, spec.MinDaysBetweenRepeats, spec.DurationDays))
+            {
+                return ConstraintViolation.RepeatGap;
+            }
+
+            // Checks first then record the day so the dish don't conflict with itself
+            useCount[dish]++;
+            usedDays[dish] |= DayMask.OfDay(slot.Day);
+            caloriesPerDay[slot.Day] += catalog.Calories[dish];
+            totalCost += catalog.CostMinorUnits[dish];
+
+            // Checks for the maximum amount of repetition in the plan
+            if (useCount[dish] > spec.MaxRepeats)
+            {
+                return ConstraintViolation.MaxRepeats;
+            }
         }
 
+        // Checks that the budget is not exceeded
+        if (totalCost > spec.BudgetMinorUnits)
+        {
+            return ConstraintViolation.Budget;
+        }
+
+        // Checks whether total calories for this day are in the allowed range
+        for (int day = 1; day <= spec.DurationDays; day++)
+        {
+            if (caloriesPerDay[day] < spec.MinDailyCalories ||
+                caloriesPerDay[day] > spec.MaxDailyCalories)
+            {
+                return ConstraintViolation.DailyCalories;
+            }
+        }
+
+        // No constraints were violated
         return ConstraintViolation.None;
     }
 
+    // The plan is feasible only when no constraints were violated
+    public static bool IsFeasible(PlanningProblem problem, ReadOnlySpan<int> assignment) =>
+    Validate(problem, assignment) == ConstraintViolation.None;
 }
