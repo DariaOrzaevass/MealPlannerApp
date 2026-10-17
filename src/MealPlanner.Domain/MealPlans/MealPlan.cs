@@ -16,7 +16,8 @@ public sealed class MealPlan : Entity<MealPlanId>
     // The list of all the items in the meal plan
     private readonly List<MealPlanEntry> _entries = [];
 
-    // Private constructor so that the dish can only be created using the Create method with validation
+    // Private constructor so that the meal plan can only
+    // be created using the Create method with validation
     private MealPlan(
     MealPlanId id,
     UserId userId,
@@ -50,7 +51,7 @@ public sealed class MealPlan : Entity<MealPlanId>
     // Name of the meal plan
     public string Name { get; private set; } = null!;
 
-    // When the meal olan begins
+    // When the meal plan begins
     public DateOnly StartDate { get; private set; }
 
     // Constraints of the plan (budget and etc.)

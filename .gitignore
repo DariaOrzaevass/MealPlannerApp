@@ -482,9 +482,9 @@ $RECYCLE.BIN/
 *.swp
 
 # ---- MealPlanner ----
-# Локальные секреты docker compose
+# For env
 .env
-# Данные контейнеров и результаты бенчмарков
+# For containers and benchmarks
 .containers/
 BenchmarkDotNet.Artifacts/
 bench/results/
