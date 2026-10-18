@@ -6,4 +6,9 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\MealPlanner.Domain\MealPlanner.Domain.csproj" />
+    <ProjectReference Include="..\MealPlanner.Planning\MealPlanner.Planning.csproj" />
+  </ItemGroup>
+
 </Project>

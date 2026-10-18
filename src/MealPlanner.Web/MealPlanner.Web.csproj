@@ -7,4 +7,8 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" />
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\MealPlanner.Application\MealPlanner.Application.csproj" />
+    <ProjectReference Include="..\MealPlanner.Infrastructure\MealPlanner.Infrastructure.csproj" />
+  </ItemGroup>
 </Project>
