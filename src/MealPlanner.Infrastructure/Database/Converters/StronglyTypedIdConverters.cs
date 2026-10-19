@@ -4,6 +4,7 @@ using System.Text;
 using MealPlanner.Domain.Allergens;
 using MealPlanner.Domain.Dishes;
 using MealPlanner.Domain.Ingredients;
+using MealPlanner.Domain.MealPlans;
 using MealPlanner.Domain.Users;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
@@ -23,6 +24,11 @@ internal sealed class IngredientIdConverter() : ValueConverter<IngredientId, Gui
 internal sealed class AllergenIdConverter() : ValueConverter<AllergenId, Guid>(
     id => id.Value,
     value => AllergenId.From(value));
+
+// Converter for the MealPlanId
+internal sealed class MealPlanIdConverter() : ValueConverter<MealPlanId, Guid>(
+    id => id.Value,
+    value => MealPlanId.From(value));
 
 // Converter for the UserId
 internal sealed class UserIdConverter() : ValueConverter<UserId, Guid>(

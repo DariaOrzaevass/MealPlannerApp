@@ -72,23 +72,30 @@ internal sealed class DishConfiguration : IEntityTypeConfiguration<Dish>
         // for easier search for published dishes
         builder.HasIndex(d => d.IsPublished);
 
-        // 
+        // Each dish owns a collection of ingredients and
+        // this block creates a new table to represent that
         builder.OwnsMany(d => d.Ingredients, ingredients =>
         {
+            // Name of the table for the ingredients of the dish
             ingredients.ToTable("dish_ingredients");
 
+            // Foreign key that links to a specific dish in the "dishes" table
             ingredients.WithOwner().HasForeignKey(i => i.DishId);
 
+            // Converts the IngredientId and the DishId
             ingredients.Property(i => i.DishId).HasConversion<DishIdConverter>();
             ingredients.Property(i => i.IngredientId).HasConversion<IngredientIdConverter>();
 
+            // Creates table columns for Quantity (20) and Measurement units (grams) of the ingredient
             ingredients.Property(i => i.Quantity).HasColumnType("decimal(10,2)");
             ingredients.Property(i => i.Unit).HasConversion<int>();
 
+            // Creates composite primary key from the IngredientId and the DishId
             ingredients.HasKey(i => new { i.DishId, i.IngredientId });
         });
 
-        // 
+        // Public property is read-only, so EF Core accesses
+        // the private backing field directly instead of property
         builder.Navigation(d => d.Ingredients)
             .UsePropertyAccessMode(PropertyAccessMode.Field);
     }
