@@ -40,7 +40,7 @@ internal sealed class DishConfiguration : IEntityTypeConfiguration<Dish>
             .IsRequired();
 
         // Money is the value object that doesn't need its own table.
-        // OwnsOne will put it in the dish table in two columns
+        // OwnsOne will put Cost in the dish table in two columns
         builder.OwnsOne(d => d.Cost, cost =>
         {
             // Column with a decimal amount of a dish cost

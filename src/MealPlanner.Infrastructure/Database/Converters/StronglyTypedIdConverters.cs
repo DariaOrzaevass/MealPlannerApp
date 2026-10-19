@@ -30,6 +30,11 @@ internal sealed class MealPlanIdConverter() : ValueConverter<MealPlanId, Guid>(
     id => id.Value,
     value => MealPlanId.From(value));
 
+// Converter for the MealPlanEntryId
+internal sealed class MealPlanEntryIdConverter() : ValueConverter<MealPlanEntryId, Guid>(
+    id => id.Value,
+    value => MealPlanEntryId.From(value));
+
 // Converter for the UserId
 internal sealed class UserIdConverter() : ValueConverter<UserId, Guid>(
     id => id.Value,
