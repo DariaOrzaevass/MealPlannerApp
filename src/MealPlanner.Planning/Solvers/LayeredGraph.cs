@@ -100,7 +100,7 @@ internal sealed class LayeredGraph
     // Returns a range(half-open) of nodes belonging to
     // this layer including the beginning of the next layer
     public (int Start, int End) LayerRange(int layer) =>
-    (_layerOffsets[layer], _layerOffsets[layer + 1]);
+        (_layerOffsets[layer], _layerOffsets[layer + 1]);
 
     // Builds a Layered Graph after validation
     public static LayeredGraph Build(PlanningProblem problem)

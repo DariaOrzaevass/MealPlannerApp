@@ -28,13 +28,13 @@ public sealed class DishIngredient
     }
 
     // The Id of the specific dish
-    public DishId DishId { get; set; } = null!;
+    public DishId DishId { get; private set; } = null!;
 
     // The Id of the specific ingredient
-    public IngredientId IngredientId { get; set; } = null!;
+    public IngredientId IngredientId { get; private set; } = null!;
 
     // The amount of the ingredient
-    public decimal Quantity { get; set; }
+    public decimal Quantity { get; private set; }
 
     // The meausurement units in which amount is specified
     public MeasurementUnit Unit { get; private set; }

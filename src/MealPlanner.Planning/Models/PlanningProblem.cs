@@ -88,6 +88,8 @@ public sealed class PlanningProblem
             spec,
             domains,
             weights ?? ObjectiveWeights.Default,
+            // Similarity cash resides within SimilarityMetric instance. If it doesn't
+            // exist it's created here once per catalog. Cannot be build by request.
             similarity ?? new SimilarityMetric(catalog),
             seed);
     }

@@ -70,6 +70,16 @@ public static class ShortestPaths
     bool[] settled,
     IndexedBinaryHeap<double> heap)
     {
+        // Negative weight or NaN break the rule
+        // "removed from the heap - the cost is final"
+        if (double.IsNaN(weight) || weight < 0)
+        {
+            throw new ArgumentOutOfRangeException(
+                nameof(weight),
+                weight,
+                "The weight of the edge cannot be negative or NaN.");
+        }
+
         // The dish is already not in the neap, cannot become better
         if (settled[to])
         {

@@ -26,7 +26,7 @@ public sealed class Ingredient : Entity<IngredientId>
     }
 
     // The name of the ingredient like "Milk" to display to the user
-    public string Name { get; set; } = null!;
+    public string Name { get; private set; } = null!;
     
     // The product category of the ingredient like "Dairy"
     public IngredientCategory Category { get; private set; }

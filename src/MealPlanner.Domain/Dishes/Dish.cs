@@ -46,34 +46,34 @@ public sealed class Dish : Entity<DishId>
     }
 
     // The name of the dish to display to the user
-    public string Name { get; set; } = null!;
+    public string Name { get; private set; } = null!;
 
     // Short description of the dish
-    public string Description { get; set; } = null!;
+    public string Description { get; private set; } = null!;
 
     // Recipe of the dish
-    public string Recipe { get; set; } = null!;
+    public string Recipe { get; private set; } = null!;
 
     // The cost of one portion of the dish
-    public Money Cost { get; set; } = null!;
+    public Money Cost { get; private set; } = null!;
 
     // The amount of calories in the dish
-    public int Calories { get; set; }
+    public int Calories { get; private set; }
 
     // When we can it this dish (Breakfast, Lunch, etc.)
-    public MealTypes SuitableFor { get; set; }
+    public MealTypes SuitableFor { get; private set; }
 
     // How long does it takes to cook this dish
-    public int CookingTimeMinutes { get; set; }
+    public int CookingTimeMinutes { get; private set; }
 
     // Is this dish Vegetarian/Vegan or fits any diet
-    public DietType Diet { get; set; }
+    public DietType Diet { get; private set; }
 
     // Which cuisine is this dish from (Italian for example)
-    public Cuisine Cuisine { get; set; }
+    public Cuisine Cuisine { get; private set; }
 
     // Is this dish published or not
-    public bool IsPublished { get; set; }
+    public bool IsPublished { get; private set; }
 
     // The read-only collection of ingredients of the dish
     public IReadOnlyCollection<DishIngredient> Ingredients => _ingredients.AsReadOnly();

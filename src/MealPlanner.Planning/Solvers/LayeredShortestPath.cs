@@ -87,7 +87,8 @@ internal static class LayeredShortestPath
             exploredNodes);
     }
 
-    // Relaxes all edges from the current node depending on where it is. 
+    // Relaxes all edges from the current node depending on where it is.
+    // Edges aren't stored, neighbours of vertex in layer i are vertices of i + 1 layer
     private static void RelaxOutgoing(
         LayeredGraph graph,
         int current,
@@ -122,7 +123,8 @@ internal static class LayeredShortestPath
             return;
         }
 
-        // For nods in other layers
+        // For nods in other layers.
+        // Neighbours - the whole next layer, edges are not stored in memory
         (int nextStart, int nextEnd) = graph.LayerRange(layer + 1);
 
         for (int next = nextStart; next < nextEnd; next++)
@@ -147,6 +149,16 @@ internal static class LayeredShortestPath
         bool[] settled,
         IndexedBinaryHeap<double> heap)
     {
+        // Negative weight or NaN break the rule
+        // "removed from the heap - the cost is final"
+        if (double.IsNaN(weight) || weight < 0)
+        {
+            throw new ArgumentOutOfRangeException(
+                nameof(weight),
+                weight,
+                "The weight of the edge cannot be negative or NaN.");
+        }
+
         // Settled nodes cannot be changed anymore
         if (settled[to])
         {

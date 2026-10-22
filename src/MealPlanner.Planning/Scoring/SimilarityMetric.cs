@@ -6,6 +6,8 @@ using MealPlanner.Planning.Models;
 namespace MealPlanner.Planning.Scoring;
 
 // Similarity of two dishes from 0 to 1. Used for the diversity of the meal plan
+// Dijkstra chooses the shortest-path and since similarity is a part of
+// the weight, Dijkstra would avoid similar neighbouring dishes
 public sealed class SimilarityMetric
 {
 #pragma warning disable IDE1006 // Naming Styles
@@ -18,7 +20,7 @@ public sealed class SimilarityMetric
     private readonly double _calorieWeight;
 
     // Table of similarities of all pairs. For 2048 its around
-    // 2.1 million pairs - 16MB. Is created one time for a catalog
+    // 2.1 million pairs - 16MB. It is created one time for a catalog
     private readonly float[]? _cache;
 
     public SimilarityMetric(
