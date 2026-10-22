@@ -17,6 +17,8 @@ public sealed class SimilarityMetric
     private readonly double _cuisineWeight;
     private readonly double _calorieWeight;
 
+    // Table of similarities of all pairs. For 2048 its around
+    // 2.1 million pairs - 16MB. Is created one time for a catalog
     private readonly float[]? _cache;
 
     public SimilarityMetric(
@@ -101,9 +103,6 @@ public sealed class SimilarityMetric
         return cache;
     }
 
-    // Reverse of Between. non-negative so can be used for Dijkstra's weighting of nodes
-    public double DistanceBetween(int dishA, int dishB) => 1.0 - Between(dishA, dishB);
-
     // Returns Jaccard Similarity (size of intersection/size of union)
     internal static double Jaccard(ReadOnlySpan<int> first, ReadOnlySpan<int> second)
     {
@@ -120,12 +119,29 @@ public sealed class SimilarityMetric
         // How many values appear in both
         int intersection = 0;
 
+        // Current positions in first and second
+        int left = 0;
+        int right = 0;
+
         // Looks for intersections
-        foreach (int item in first)
+        while (left < first.Length && right < second.Length)
         {
-            if (second.Contains(item))
+            int a = first[left];
+            int b = second[right];
+
+            if (a == b)
             {
                 intersection++;
+                left++;
+                right++;
+            }
+            else if (a < b)
+            {
+                left++;
+            }
+            else
+            {
+                right++;
             }
         }
 

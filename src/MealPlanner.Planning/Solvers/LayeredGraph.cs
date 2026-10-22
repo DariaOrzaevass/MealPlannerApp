@@ -187,7 +187,7 @@ internal sealed class LayeredGraph
         return Math.Abs(toDay - fromDay) >= _problem.Spec.MinDaysBetweenRepeats;
     }
 
-    // Turns the price of the dish ito cost penalty
+    // Turns the price of the dish to cost penalty
     private double CostTerm(int dish) =>
     (_problem.Weights.Cost + ExtraCostMultiplier)
     * _problem.Catalog.CostMinorUnits[dish]
