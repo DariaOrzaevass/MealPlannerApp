@@ -13,6 +13,9 @@
     <Project Path="src/MealPlanner.Planning/MealPlanner.Planning.csproj" Id="ada0bf64-ccc5-4163-ac1b-2c9e122d0707" />
     <Project Path="src/MealPlanner.Web/MealPlanner.Web.csproj" />
   </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/MealPlanner.Planning.Tests/MealPlanner.Planning.Tests.csproj" Id="b4f864f6-5207-450e-a375-5ead2d880c20" />
+  </Folder>
   <Project Path="docker-compose.dcproj">
     <Build />
   </Project>
