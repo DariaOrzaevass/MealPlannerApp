@@ -303,7 +303,7 @@ public sealed class IndexedBinaryHeap<TPriority>
         Count = 0;
     }
 
-    // For future testing. Checks whether the heap is valid.
+    // For testing. Checks whether the heap is valid.
     // Priority of the parent cannot be more than its children's
     internal bool IsHeapValid()
     {
