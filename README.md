@@ -33,3 +33,16 @@ docker compose up --build
 ```
 
 Web-application: http://localhost:5080
+
+## Tests
+
+```Bash
+dotnet test
+```
+
+Current tests:
+
+- CandidateDomainsTests
+- DishIndex against a simple scan
+- IndexedBinaryHeapTests
+- ShortestPathsTests against Bellman-Ford
