@@ -53,5 +53,5 @@ public static class DayMask
 
     // Checks whether the previously used days overlap with the forbidden window, violating it
     public static bool ViolatesGap(ulong usedDays, int day, int gap, int durationDays) =>
-    (usedDays & ForbiddenWindow(day, gap, durationDays)) != 0UL;
+        (usedDays & ForbiddenWindow(day, gap, durationDays)) != 0UL;
 }
