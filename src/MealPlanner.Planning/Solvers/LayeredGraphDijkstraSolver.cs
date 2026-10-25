@@ -18,7 +18,7 @@ public sealed class LayeredGraphDijkstraSolver : IMealPlanSolver
     // The name of the algorithm
     public string Name => "Dijkstra (Layered Graph)";
 
-    // The main solving method that takes a problem returns a plan solution
+    // The main solving method that takes a problem and returns a plan solution
     public PlanSolution Solve(PlanningProblem problem, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(problem);

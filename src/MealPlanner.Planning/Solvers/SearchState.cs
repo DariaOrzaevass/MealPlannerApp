@@ -273,4 +273,30 @@ internal sealed class SearchState
         // Returns total similarity 
         return total;
     }
+
+    // The share of the remaining budget allocated to this slot. It's not devided
+    // equally, but proportionally to the average cost of dishes of this meal kind,
+    // since breakfasts are usually cheaper than dinners for example
+    public double BudgetShareFor(SlotDescriptor slot)
+    {
+        // Calculates how much money is left in minor units
+        int remainingBudget = _problem.Spec.BudgetMinorUnits - SpentMinorUnits;
+
+        // If no money is left, returns 0
+        if (remainingBudget <= 0 || _remainingWeight <= 0)
+        {
+            return 0;
+        }
+
+        // Returns the share of the budget that can be used for assigning
+        // a dish to a slot with a specific meal kind (Breakfast, Lunch, etc.)
+        return remainingBudget * _problem.Domains.AverageCostForKind(slot.Kind) / _remainingWeight;
+    }
+
+    // Answers "if the current slot is filled, what's the minimum
+    // amount of money needed to fill all remaining slots?". If even
+    // the cheapest dishes will not fit in the budget then the expensive
+    // option should not be chosen now
+    public int MinCostOfRemainingAfter(SlotDescriptor slot) =>
+    _remainingMinCost - _problem.Domains.MinCostForKind(slot.Kind);
 }
