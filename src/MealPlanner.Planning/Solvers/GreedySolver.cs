@@ -27,7 +27,7 @@ public sealed class GreedySolver : IMealPlanSolver
         if (problem.Domains.HasEmptyDomain)
         {
             return PlanSolution.Infeasible(
-                "There is no available dish for one of the meal slots.",
+                "There is no valid dish for one of the meal slots.",
                 exploredNodes: 0,
                 Stopwatch.GetTimestamp() - start);
         }
@@ -35,11 +35,42 @@ public sealed class GreedySolver : IMealPlanSolver
         // Creates a new search state
         var state = new SearchState(problem);
 
-        // Delete later, only to compile
-        return PlanSolution.Infeasible(
-            "There is no available dish for one of the meal slots.",
+        // Algorithm tries to fill every slot, if it does it successfully - the null is returned
+        string? fillFailure = Fill(problem, state, cancellationToken);
+
+        // If algorithm failed to fill the plan, it returns the reason why
+        if (fillFailure is not null)
+        {
+            return PlanSolution.Infeasible(fillFailure, 0, Stopwatch.GetTimestamp() - start);
+        }
+
+        // Algorithm then tries (if needed) to repair the plan by
+        // changing one dish at a time to a cheaper one to fit the budget
+        Repair(problem, state, cancellationToken);
+
+        // Validates that the meal plan satisfies all constraints
+        ConstraintViolation violation = ConstraintValidator.Validate(problem, state.Assignment);
+
+        // Measures how much time the previous actions took
+        long elapsed = Stopwatch.GetTimestamp() - start;
+
+        // The Greedy Algorithm couldn't find a solution fitting all constraints,
+        // even though it can exist. Shows which constraint was violated first.
+        if (violation != ConstraintViolation.None)
+        {
+            return PlanSolution.Exhausted(
+                $"The Greedy Algorithm violates the constraint: {violation}.",
+                exploredNodes: 0,
+                elapsed);
+        }
+
+        // Returns a successfully solved result
+        return PlanSolution.Solved(
+            [.. state.Assignment],
+            state.SpentMinorUnits,
+            ObjectiveFunction.Evaluate(problem, state.Assignment),
             exploredNodes: 0,
-            Stopwatch.GetTimestamp() - start);
+            elapsed);
     }
 
     // Builds an order in which slots should be considered
@@ -82,7 +113,7 @@ public sealed class GreedySolver : IMealPlanSolver
 
         foreach (int slotIndex in order)
         {
-            // Allows to cancels externally
+            // Allows to cancel externally
             cancellationToken.ThrowIfCancellationRequested();
 
             SlotDescriptor slot = problem.Spec.Slots[slotIndex];
@@ -253,5 +284,90 @@ public sealed class GreedySolver : IMealPlanSolver
         }
 
         return $"Day {slot.Day}: there is no valid dishes for the meal slot.";
+    }
+
+    // Repairs already completed plan by reducing its price
+    private static void Repair(
+        PlanningProblem problem,
+        SearchState state,
+        CancellationToken cancellationToken)
+    {
+        // Repair iterations are fixed to 256
+        for (int iteration = 0; iteration < _repairIterationLimit; iteration++)
+        {
+            // If the plan already fits the budget repairs stop
+            if (state.SpentMinorUnits <= problem.Spec.BudgetMinorUnits)
+            {
+                return;
+            }
+
+            // Allows to cancel externally
+            cancellationToken.ThrowIfCancellationRequested();
+
+            int bestSlot = -1;
+            int bestDish = -1;
+            double bestGain = 0;
+
+            foreach (SlotDescriptor slot in problem.Spec.Slots)
+            {
+                // Gets the dish in the slot, its cost, budget
+                // share for the slot and score of the dish
+                int current = state.Assignment[slot.Index];
+                int currentCost = problem.Catalog.CostMinorUnits[current];
+                double share = state.BudgetShareFor(slot);
+                double currentScore = Score(problem, state, slot, current, share);
+
+                // Loops through all candidate dishes for this slot
+                foreach (int candidate in problem.Domains.ForSlot(slot))
+                {
+                    // Skips the current dish
+                    if (candidate == current)
+                    {
+                        continue;
+                    }
+
+                    // Calculates how much the candidate dish would save
+                    int saving = currentCost - problem.Catalog.CostMinorUnits[candidate];
+
+                    // If it saves nothing - skips that dish
+                    if (saving <= 0)
+                    {
+                        continue;
+                    }
+
+                    // If the dish cannot be placed here
+                    // due to constraints - skips it
+                    if (!state.CanReplace(slot, candidate))
+                    {
+                        continue;
+                    }
+
+                    // How big is the greedy score loss. Doesn't allow negative if new score better than current
+                    double scoreLoss = Math.Max(0.0, currentScore - Score(problem, state, slot, candidate, share));
+
+                    // How much money is saved for loss in Greedy score. If the
+                    // replacement has no loss in score adds 0.05 to not to divide by 0
+                    double gain = saving / (scoreLoss + 0.05);
+
+                    // Remembers the best slot and a replacement candidate
+                    if (gain > bestGain)
+                    {
+                        bestGain = gain;
+                        bestSlot = slot.Index;
+                        bestDish = candidate;
+                    }
+                }
+            }
+
+            // If no single replacements will improve
+            // the plan, it stops (local minimum)
+            if (bestSlot < 0)
+            {
+                return;
+            }
+
+            // Does the best replacement
+            state.Replace(problem.Spec.Slots[bestSlot], bestDish);
+        }
     }
 }
