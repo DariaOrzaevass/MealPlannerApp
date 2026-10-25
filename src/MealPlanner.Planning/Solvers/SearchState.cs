@@ -105,7 +105,7 @@ internal sealed class SearchState
 
     // Checks whether it possible to place a dish to a meal slot
     // without violation of maximum amount of repeats, the gap
-    // between repeats and the maximum daily calorie number
+    // between repeats, and the maximum daily calorie number
     public bool CanPlace(SlotDescriptor slot, int dish)
     {
         if (_useCount[dish] >= _problem.Spec.MaxRepeats)

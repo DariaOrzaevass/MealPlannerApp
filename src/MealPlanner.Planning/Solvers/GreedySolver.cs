@@ -71,6 +71,96 @@ public sealed class GreedySolver : IMealPlanSolver
         return order;
     }
 
+    // Tries to fill all the slots or returns the reason why it failed
+    private static string? Fill(
+        PlanningProblem problem,
+        SearchState state,
+        CancellationToken cancellationToken)
+    {
+        // Builds the correct slot order
+        int[] order = BuildSlotOrder(problem);
+
+        foreach (int slotIndex in order)
+        {
+            // Allows to cancels externally
+            cancellationToken.ThrowIfCancellationRequested();
+
+            SlotDescriptor slot = problem.Spec.Slots[slotIndex];
+
+            // Firstly, tries to choose with looking ahead and respecting the budget. The
+            // dish is chosen only if remaining slots can be filled with cheapest options
+            int chosen = ChooseBest(problem, state, slot, respectBudgetLookahead: true);
+
+            // If the first try fail, forgets about budget, so it is exceeded.
+            // The repair phase will try to fix that later, making the plan cheaper.
+            chosen = chosen >= 0
+                ? chosen
+                : ChooseBest(problem, state, slot, respectBudgetLookahead: false);
+
+            // Describes why no dish can be chosen
+            if (chosen < 0)
+            {
+                return DescribeDeadEnd(problem, state, slot);
+            }
+
+            // Assign a dish to a meal slot
+            state.Place(slot, chosen);
+        }
+
+        return null;
+    }
+
+    // Chooses the best scoring dish for the slot or -1 if none was chosen
+    private static int ChooseBest(
+        PlanningProblem problem,
+        SearchState state,
+        SlotDescriptor slot,
+        bool respectBudgetLookahead)
+    {
+        // Gets the candidate dishes for the slot, its budget share,
+        // and the minimum amount of money for the remaining slots
+        ReadOnlySpan<int> domain = problem.Domains.ForSlot(slot);
+        double share = state.BudgetShareFor(slot);
+        int lookahead = respectBudgetLookahead ? state.MinCostOfRemainingAfter(slot) : 0;
+
+        int best = -1;
+        double bestScore = double.NegativeInfinity;
+
+        foreach (int dish in domain)
+        {
+            // Checks whether it is possible to place a dish in the slot
+            // (maximum amount of repeats, the gap between repeats, and
+            // the maximum daily calorie number are not violated)
+            if (!state.CanPlace(slot, dish))
+            {
+                continue;
+            }
+
+            // If after adding the cost of the new dish to a spent share of budget, the
+            // minimum needed money to finish the plan exceeds the budget - dish is skipped
+            if (respectBudgetLookahead &&
+                state.SpentMinorUnits + problem.Catalog.CostMinorUnits[dish] + lookahead
+                    > problem.Spec.BudgetMinorUnits)
+            {
+                continue;
+            }
+
+            // Gets the heuristic score of the dish
+            double score = Score(problem, state, slot, dish, share);
+
+            // If the scores of dishes are equal,
+            // wins the one with smaller index
+            if (score > bestScore)
+            {
+                bestScore = score;
+                best = dish;
+            }
+        }
+
+        // Returns the best fitting dish or -1
+        return best;
+    }
+
     // Score of the dish, how good it is for
     // the slot - the core greedy heuristic
     private static double Score(
@@ -107,5 +197,61 @@ public sealed class GreedySolver : IMealPlanSolver
             + (weights.Variety * novelty)
             + (weights.Monotony * monotony)
             + (weights.Preference * preference);
+    }
+
+    // Describes wich constraint led the GreedySolver to the dead end
+    private static string DescribeDeadEnd(PlanningProblem problem, SearchState state, SlotDescriptor slot)
+    {
+        ReadOnlySpan<int> domain = problem.Domains.ForSlot(slot);
+
+        // Counts for how many candidate dishes
+        // were blocked by each constraint
+        int blockedByRepeats = 0;
+        int blockedByGap = 0;
+        int blockedByCalories = 0;
+
+        // Each dish blockes is counted only to the first reason of blockage
+        foreach (int dish in domain)
+        {
+            // How many dishes were blocked by maximum number of repeats
+            if (state.UseCount(dish) >= problem.Spec.MaxRepeats)
+            {
+                blockedByRepeats++;
+            }
+
+            // How many dishes were blocked by gap violation
+            else if (state.ViolatesGap(slot, dish))
+            {
+                blockedByGap++;
+            }
+
+            // How many dishes were blocked for exceeding daily calories
+            else if (state.ExceedsDailyCalories(slot, dish))
+            {
+                blockedByCalories++;
+            }
+        }
+
+        // These blocks return because of which constraint the meal plan is not created
+
+        if (blockedByGap >= blockedByRepeats && blockedByGap >= blockedByCalories && blockedByGap > 0)
+        {
+            return $"Day {slot.Day}: all valid dishes violate the gap between repeats " +
+                $"({problem.Spec.MinDaysBetweenRepeats} d.). Lower the gap or expand the catalogue.";
+        }
+
+        if (blockedByRepeats >= blockedByCalories && blockedByRepeats > 0)
+        {
+            return $"Day {slot.Day}: all valid dishes violate the allowed repeat number " +
+                $"({problem.Spec.MaxRepeats}). Increase the repeat number or expand the catalogue.";
+        }
+
+        if (blockedByCalories > 0)
+        {
+            return $"Day {slot.Day}: all valid dishes violate the upper limits of calories " +
+                $"({problem.Spec.MaxDailyCalories} kcal). Increase the limit or expand the catalogue.";
+        }
+
+        return $"Day {slot.Day}: there is no valid dishes for the meal slot.";
     }
 }
