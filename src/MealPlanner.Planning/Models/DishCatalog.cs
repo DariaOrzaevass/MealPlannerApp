@@ -113,7 +113,7 @@ public sealed class DishCatalog
             ingredientCount);
     }
 
-    private DishCatalog(
+    public DishCatalog(
         int[] costMinorUnits,
         int[] calories,
         MealKinds[] suitableFor,
