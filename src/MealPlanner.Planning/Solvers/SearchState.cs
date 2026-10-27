@@ -26,7 +26,7 @@ internal sealed class SearchState
     // Stores total calories per day
     private readonly int[] _caloriesPerDay;
 
-    // How many meal slots for this day have benn assigned
+    // How many meal slots for this day have been assigned
     private readonly int[] _assignedPerDay;
 
     // How many slots the day has
