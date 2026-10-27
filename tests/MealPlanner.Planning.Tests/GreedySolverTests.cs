@@ -1,6 +1,7 @@
 using FluentAssertions;
 using MealPlanner.Planning.DataStructures;
 using MealPlanner.Planning.Models;
+using MealPlanner.Planning.Scoring;
 using MealPlanner.Planning.Solvers;
 using MealPlanner.Planning.Tests.Models;
 
@@ -188,5 +189,160 @@ public class GreedySolverTests
 
         // Groups all occurences by dish, where each group has no more than 2 dishes
         solution.Assignment.GroupBy(d => d).Should().OnlyContain(g => g.Count() <= 2);
+    }
+
+    // Checks that solved plan does not violate repeat gap
+    [Fact]
+    public void Solve_Should_RespectRepeatGap()
+    {
+        // Creates a problem that states that a dish can repeat only after 3 days gap
+        const int Gap = 3;
+        PlanningProblem problem = Problem(minDaysBetweenRepeats: Gap, maxRepeats: 5);
+
+        PlanSolution solution = _solver.Solve(problem);
+
+        solution.IsSolved.Should().BeTrue(solution.FailureReason);
+
+        // Creates a dictionary with dish ID's and days of their appearance in plan
+        var daysByDish = new Dictionary<int, List<int>>();
+
+        for (int i = 0; i < solution.Assignment.Count; i++)
+        {
+            // Gets the dish and the day of the assignment
+            int dish = solution.Assignment[i];
+            int day = problem.Spec.Slots[i].Day;
+
+            // If there is no list for a dish creates it
+            if (!daysByDish.TryGetValue(dish, out List<int>? days))
+            {
+                days = [];
+                daysByDish[dish] = days;
+            }
+
+            // Records the appearance of the dish on that day
+            days.Add(day);
+        }
+
+        // Goes through the dictionary
+        foreach (List<int> days in daysByDish.Values)
+        {
+            // Sorts days into correct ascending order
+            days.Sort();
+
+            for (int i = 1; i < days.Count; i++)
+            {
+                // Checks that the gap is not violated for any dish
+                (days[i] - days[i - 1]).Should().BeGreaterThanOrEqualTo(Gap);
+            }
+        }
+    }
+
+    // Checks that solved plan does not violate maximum calirie number
+    [Fact]
+    public void Solve_Should_RespectDailyCalorieCeiling()
+    {
+        // Creates a problem that states that a maximum daily calorie number is 2200
+        const int Ceiling = 2200;
+        PlanningProblem problem = Problem(maxDailyCalories: Ceiling, dishCount: 200);
+
+        PlanSolution solution = _solver.Solve(problem);
+
+        solution.IsSolved.Should().BeTrue(solution.FailureReason);
+
+        for (int day = 1; day <= problem.Spec.DurationDays; day++)
+        {
+            // Calculates the sum of calories for the slots of one day
+            int dayCalories = problem.Spec.Slots
+                .Where(s => s.Day == day)
+                .Sum(s => problem.Catalog.Calories[solution.Assignment[s.Index]]);
+
+            // Checks that daily sum of calories is not more than the specified limit
+            dayCalories.Should().BeLessThanOrEqualTo(Ceiling);
+        }
+    }
+
+    // Checks the soft constraint that the solved plan should be varied
+    [Fact]
+    public void Solve_Should_ProduceVariedPlan()
+    {
+        // Creates a problems that allows to repeat dishes a lot
+        PlanningProblem problem = Problem(dishCount: 200, maxRepeats: 10, minDaysBetweenRepeats: 0);
+
+        PlanSolution solution = _solver.Solve(problem);
+
+        // Checks that the solved plan is varied
+        solution.IsSolved.Should().BeTrue(solution.FailureReason);
+        solution.DiversityIndex.Should().BeGreaterThan(0.5);
+    }
+
+    // Checks a NFR2, of creating a plan in 2 seconds or less
+    [Fact]
+    public void Solve_Should_BeFast()
+    {
+        // Creates a large input
+        PlanningProblem problem = Problem(dishCount: 2000, seed: 7);
+
+        PlanSolution solution = _solver.Solve(problem);
+
+        // The plan should be solved in 2 or less seconds despite the large input
+        solution.IsSolved.Should().BeTrue(solution.FailureReason);
+        solution.Elapsed.Should().BeLessThan(TimeSpan.FromSeconds(2));
+    }
+
+    // The main test for the GreedySolver. Runs for 8 different seeds
+    [Theory]
+    [InlineData(1)]
+    [InlineData(2)]
+    [InlineData(3)]
+    [InlineData(4)]
+    [InlineData(5)]
+    [InlineData(6)]
+    [InlineData(7)]
+    [InlineData(8)]
+    public void Solve_Should_NeverViolateConstraints_OnRandomProblems(int seed)
+    {
+        // Creates a planning problem
+        PlanningProblem problem = Problem(
+            dishCount: 150,
+            seed: seed,
+            budgetMinorUnits: 350_000 + (seed * 20_000),
+            dietLevel: seed % 3,
+            excluded: AllergenMask.FromPositions([seed % 9]),
+            disliked: [seed % 40, (seed * 7) % 40],
+            maxRepeats: 2 + (seed % 3),
+            minDaysBetweenRepeats: seed % 4,
+            maxDailyCalories: 1800 + (seed * 150));
+
+        PlanSolution solution = _solver.Solve(problem);
+
+        if (solution.IsSolved)
+        {
+            // If Solver successfully created a plan,
+            // than none constraint should be violated
+            ConstraintValidator.Validate(problem, [.. solution.Assignment])
+                .Should().Be(ConstraintViolation.None);
+        }
+        else
+        {
+            // If Solver failed there should be no assignments
+            // and a failure reason should be reported
+            solution.Assignment.Should().BeEmpty();
+            solution.FailureReason.Should().NotBeNullOrWhiteSpace();
+        }
+    }
+
+    // Checks that objective is calculated correctly for the solved plan
+    [Fact]
+    public void Objective_Should_MatchIndependentEvaluation()
+    {
+        PlanningProblem problem = Problem();
+
+        PlanSolution solution = _solver.Solve(problem);
+
+        // Recomputes the objective for the solved plan independantly
+        double recomputed = ObjectiveFunction.Evaluate(problem, [.. solution.Assignment]);
+
+        // Checks that objective reported by PlanSolution is correct
+        solution.Objective.Should().BeApproximately(recomputed, 1e-9);
     }
 }
