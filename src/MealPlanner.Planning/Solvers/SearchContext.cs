@@ -17,7 +17,7 @@ internal sealed class SearchContext
 
     // Stores ordered domains of candidate dishes,
     // can be null if no candidates
-    //private readonly int[]?[] _orderedDomains;
+    private readonly int[]?[] _orderedDomains;
 
     // How many candidate dishes are feasible for each slot.
     // Recalculated after changes if some heuristic needs it
@@ -56,7 +56,7 @@ internal sealed class SearchContext
         _nodeLimit = nodeLimit;
         _cancellationToken = cancellationToken;
 
-        //_orderedDomains = ;
+        _orderedDomains = BuildOrderedDomains(problem, heuristics);
     }
 
     public PlanningProblem Problem { get; }
@@ -80,4 +80,99 @@ internal sealed class SearchContext
 
     // The value of Objective function of the best plan found
     public double BestObjective { get; private set; } = double.PositiveInfinity;
+
+    // How many times the current best solution was improved
+    public int ImprovementCount { get; private set; }
+
+    // Prepares candidate ordering by the greedy scoring for ValueOrdering.
+    // Best candidates considered first. Score is static and calculated only once,
+    // to not to introduce many recalculations. Doesn't depend on the search state
+    private static int[]?[] BuildOrderedDomains(
+        PlanningProblem problem,
+        BacktrackingHeuristics heuristics)
+    {
+        var ordered = new int[]?[MealKindIndex.Count];
+
+        // If ValueOrdering is not enabled the array stays empty
+        if (!heuristics.HasFlag(BacktrackingHeuristics.ValueOrdering))
+        {
+            return ordered;
+        }
+
+        foreach (MealKinds kind in problem.Spec.MealsPerDay)
+        {
+            // Converts Meal Kind to index
+            int kindIndex = MealKindIndex.ToIndex(kind);
+
+            // Once a Meal Kind has anordered domain method skips it
+            if (ordered[kindIndex] is not null)
+            {
+                continue;
+            }
+
+            // Creates an array of valid dishes for this meal kind
+            int[] domain = [.. problem.Domains.ForKind(kind)];
+
+            // If there are no candidate dishes
+            // the empty domain is just stored
+            if (domain.Length == 0)
+            {
+                ordered[kindIndex] = domain;
+
+                continue;
+            }
+
+            int maxCost = 1;
+
+            // Finds the most expensive dish in the domain
+            foreach (int dish in domain)
+            {
+                maxCost = Math.Max(maxCost, problem.Catalog.CostMinorUnits[dish]);
+            }
+
+            var scores = new double[domain.Length];
+
+            // Calculates greedy score consisting of cost and preference
+            for (int i = 0; i < domain.Length; i++)
+            {
+                int dish = domain[i];
+
+                scores[i] = (problem.Weights.Cost
+                        * (1.0 - ((double)problem.Catalog.CostMinorUnits[dish] / maxCost)))
+                    + (problem.Weights.Preference * (1.0 - problem.PreferencePenalty(dish)));
+            }
+
+            var order = new int[domain.Length];
+
+            for (int i = 0; i < order.Length; i++)
+            {
+                order[i] = i;
+            }
+
+            // The copy of indices is sorted, so that
+            // when dishes have the same score the one
+            // with smallest dish ID will come first
+            Array.Sort(order, (left, right) =>
+            {
+                // Higher scores come first
+                int byScore = scores[right].CompareTo(scores[left]);
+
+                return byScore != 0 ? byScore : domain[left].CompareTo(domain[right]);
+            });
+
+            var result = new int[domain.Length];
+
+            // Creates the final array of dish IDs
+            for (int i = 0; i < order.Length; i++)
+            {
+                result[i] = domain[order[i]];
+            }
+
+            // Stores result by meal kind
+            ordered[kindIndex] = result;
+        }
+
+        // Returns ordered array
+        return ordered;
+    }
 }
