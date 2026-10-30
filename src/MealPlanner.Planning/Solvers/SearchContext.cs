@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Text;
 using MealPlanner.Planning.Models;
+using MealPlanner.Planning.Scoring;
 
 namespace MealPlanner.Planning.Solvers;
 
@@ -31,9 +32,9 @@ internal sealed class SearchContext
     // Allows to cancell the serach from outside
     private readonly CancellationToken _cancellationToken;
 
-    // Is the _feasibleCount still reslects
+    // Is the _feasibleCount still reflects
     // the the current state of the search
-    //private bool _countsFresh;
+    private bool _countsFresh;
 
     public SearchContext(
         PlanningProblem problem,
@@ -83,6 +84,147 @@ internal sealed class SearchContext
 
     // How many times the current best solution was improved
     public int ImprovementCount { get; private set; }
+
+    // Provides a "warm start", starting from the feasible
+    // solution, found by another solver like Greedy
+    public void SeedBest(int[] assignment, double objective)
+    {
+        if (objective >= BestObjective)
+        {
+            return;
+        }
+
+        // Branch and Bound can start with this solution
+        BestAssignment = assignment;
+        BestObjective = objective;
+    }
+
+    // Record the solution if its objective is better than the current best assignment
+    public bool RecordSolution()
+    {
+        // Calculates objective of the finished plan
+        double objective = ObjectiveFunction.Evaluate(Problem, State.Assignment);
+
+        // Compares it to the best one so far
+        if (objective >= BestObjective)
+        {
+            return false;
+        }
+
+        // If it is better - stores it
+        BestObjective = objective;
+
+        // Copy here because State.Assignment will continue to change
+        BestAssignment = [.. State.Assignment];
+        ImprovementCount++;
+
+        return true;
+    }
+
+    // Calculates the lower bound on the objective value a completion of the current
+    // plan can achieve. Deliberately uses optimistic assumptions - even if
+    // optimistic value doesn't beat the current best, the branch can be pruned
+    public double LowerBoundObjective()
+    {
+        ObjectiveWeights weights = Problem.Weights;
+        int slotCount = Problem.SlotCount;
+        int unassigned = slotCount - State.AssignedCount;
+
+        // Assumes that every remaining slot will get the cheapest dish
+        double costTerm = (double)(State.SpentMinorUnits + State.RemainingMinCost)
+            / Problem.Spec.BudgetMinorUnits;
+
+        // Only similarities of already assigned neighbouring dishes are considered.
+        double monotonyTerm = slotCount > 1 ? State.MonotonySum / (slotCount - 1) : 0;
+
+        // Only already included preference penalties are considered
+        double preferenceTerm = State.PreferenceSum / slotCount;
+
+        // Assumes that remaining slots will only use new dishes
+        int bestPossibleDistinct = Math.Min(slotCount, State.DistinctDishCount + unassigned);
+        double varietyTerm = 1.0 - ((double)bestPossibleDistinct / slotCount);
+
+        // Returns the optimistic objective
+        return (weights.Cost * costTerm)
+            + (weights.Monotony * monotonyTerm)
+            + (weights.Preference * preferenceTerm)
+            + (weights.Variety * varietyTerm);
+    }
+
+    // Pruning decision of branch and bound when the branch cannot give a better plan
+    // than recorded. Returns true in any of these cases: it is a backtracking, there
+    // is no best solution yet, and the branch can still become better than the best plan
+    public bool CanImproveOnBest() =>
+    !Optimize || BestAssignment is null || LowerBoundObjective() < BestObjective;
+
+    // Marks the slot as assigned and sets _countsFresh to false
+    // to show that feasible-domains counts may become outdated
+    public void MarkAssigned(int slotIndex)
+    {
+        _assigned[slotIndex] = true;
+        _countsFresh = false;
+    }
+
+    // Marks the slot as unassigned and sets _countsFresh to false
+    // to show that feasible-domains counts may become outdated
+    public void UnmarkAssigned(int slotIndex)
+    {
+        _assigned[slotIndex] = false;
+        _countsFresh = false;
+    }
+
+    // Recomputes only if _countsFresh is false
+    private void EnsureCounts()
+    {
+        if (!_countsFresh)
+        {
+            ComputeCounts();
+        }
+    }
+
+    // Computes how many feasible dishes are available for each slot
+    private bool ComputeCounts()
+    {
+        // Represent whether this branch is still solvable
+        bool alive = true;
+
+        for (int slotIndex = 0; slotIndex < _assigned.Length; slotIndex++)
+        {
+            // If slot is assigned, no need to calculate candidates for it
+            if (_assigned[slotIndex])
+            {
+                continue;
+            }
+
+            // Retrives the information about the slot
+            SlotDescriptor slot = Problem.Spec.Slots[slotIndex];
+            int count = 0;
+
+            // Counts all the candidate dishes for the slot
+            foreach (int dish in Problem.Domains.ForSlot(slot))
+            {
+                if (State.CanPlace(slot, dish))
+                {
+                    count++;
+                }
+            }
+
+            _feasibleCount[slotIndex] = count;
+
+            // Returns false if at least one
+            // slot has no feaible dishes left
+            if (count == 0)
+            {
+                alive = false;
+            }
+        }
+
+        // Now _feasibleCount reflects the the current
+        // state of search, so _countsFresh becomes true
+        _countsFresh = true;
+
+        return alive;
+    }
 
     // Prepares candidate ordering by the greedy scoring for ValueOrdering.
     // Best candidates considered first. Score is static and calculated only once,
