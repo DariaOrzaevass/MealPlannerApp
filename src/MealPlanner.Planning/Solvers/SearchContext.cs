@@ -311,7 +311,7 @@ internal sealed class SearchContext
     // Final check of the complete plan. Since heuristic methods are optimized for speed,
     // the check by the full validator ensures that all constraints are satisfied.
     public bool SatisfiesFinalChecks() =>
-    ConstraintValidator.Validate(Problem, State.Assignment) == ConstraintViolation.None;
+        ConstraintValidator.Validate(Problem, State.Assignment) == ConstraintViolation.None;
 
     // Checks whether the time or node limit is reached,
     // or is the search cancelled from outside.
