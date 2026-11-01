@@ -151,7 +151,7 @@ internal sealed class SearchContext
             + (weights.Variety * varietyTerm);
     }
 
-    // Pruning decision of branch and bound when the branch cannot give a better plan
+    // Pruning decision of branch and bound, when the branch cannot give a better plan
     // than recorded. Returns true in any of these cases: it is a backtracking, there
     // is no best solution yet, and the branch can still become better than the best plan
     public bool CanImproveOnBest() =>
@@ -171,6 +171,179 @@ internal sealed class SearchContext
     {
         _assigned[slotIndex] = false;
         _countsFresh = false;
+    }
+
+    // Chooses the next slot to assign
+    public int SelectSlot()
+    {
+        // If MRV is disabled then the slots are scanned in
+        // the schedule order to return the first unassigned one
+        if (!_heuristics.HasFlag(BacktrackingHeuristics.MinimumRemainingValues))
+        {
+            for (int slot = 0; slot < _assigned.Length; slot++)
+            {
+                if (!_assigned[slot])
+                {
+                    return slot;
+                }
+            }
+
+            return -1;
+        }
+
+        // Updates feasible counts if they are outdated
+        EnsureCounts();
+
+        int best = -1;
+        int bestCount = int.MaxValue;
+
+        for (int slot = 0; slot < _assigned.Length; slot++)
+        {
+            if (_assigned[slot])
+            {
+                continue;
+            }
+
+            // Selects the slot with the smallest domain of
+            // feasible dishes. If two slots have same number
+            // of dishes, the one with the smallest index wins.
+            if (_feasibleCount[slot] < bestCount)
+            {
+                bestCount = _feasibleCount[slot];
+                best = slot;
+            }
+        }
+
+        // Returns the slot with the smallest domain 
+        return best;
+    }
+
+    // Returns candidate dishes in the order the solver should try them
+    // If the slot is pinned, its domain contains only the pinned dish.
+    // Ordered domains are built for meal kinds and do not know that
+    public ReadOnlySpan<int> OrderedDomain(SlotDescriptor slot) =>
+    Problem.Spec.IsPinned(slot.Index)
+        ? Problem.Domains.ForSlot(slot)
+        : _orderedDomains[MealKindIndex.ToIndex(slot.Kind)] ?? Problem.Domains.ForSlot(slot);
+
+    // Pruning by the lowest budget bound. If even the cheapest dishes
+    // for the remaining slots cannot exceeds the budget - prune the branch
+    public bool FitsBudgetBound(SlotDescriptor slot, int dish)
+    {
+        // If BudgetBound heuristic is disabled, returns true
+        // and candidate is not rejected by this method
+        if (!_heuristics.HasFlag(BacktrackingHeuristics.BudgetBound))
+        {
+            return true;
+        }
+
+        // Otherwise, calculates cost lower bound adding the spent budget
+        // to dish cost and minimum cost of remaining dishes. Subtracts
+        // MinCostForKind, because it includes the current slot
+        int projected = State.SpentMinorUnits
+            + Problem.Catalog.CostMinorUnits[dish]
+            + State.RemainingMinCost
+            - Problem.Domains.MinCostForKind(slot.Kind);
+
+        // Returns whether the calculated lower bound is less than the budget
+        return projected <= Problem.Spec.BudgetMinorUnits;
+    }
+
+    // Checks that every unassigned slot has at least one
+    // feasible dish left. If not - the branch is pruned.
+    public bool ForwardCheckPasses()
+    {
+        // If ForwardChecking heuristic is dasabled, nothing happens
+        if (!_heuristics.HasFlag(BacktrackingHeuristics.ForwardChecking))
+        {
+            return true;
+        }
+
+        return ComputeCounts();
+    }
+
+    // Pruning by the daily calorie range. Given the assigned to this
+    // day meal slots and possible calorie ranges of the empty slots,
+    // is it possible to finish this day in the required calorie range.
+    public bool DayCaloriesStillReachable(int day)
+    {
+        PlanningSpec spec = Problem.Spec;
+
+        // If there is no calorie restriction, the branch is not pruned
+        if (spec.MinDailyCalories <= 0 && spec.MaxDailyCalories == int.MaxValue)
+        {
+            return true;
+        }
+
+        // Gets the current calories of the day
+        int current = State.CaloriesOfDay(day);
+
+        // Calculate the minimum and maximum possible calories of remaining slots
+        int minRest = 0;
+        int maxRest = 0;
+
+        foreach (SlotDescriptor slot in spec.Slots)
+        {
+            // Skips the already assigned slots and slots of other days
+            if (slot.Day != day || _assigned[slot.Index])
+            {
+                continue;
+            }
+
+            // Adds minimum and maximum calories of the meal kind
+            minRest += Problem.Domains.MinCaloriesForKind(slot.Kind);
+            maxRest += Problem.Domains.MaxCaloriesForKind(slot.Kind);
+        }
+
+        // If there is a lower bound on daily calories,
+        // checks that most caloric dishes for remaining slots can reach it
+        if (spec.MinDailyCalories > 0 && current + maxRest < spec.MinDailyCalories)
+        {
+            return false;
+        }
+
+        // If there is an upper bound on daily calories,
+        // checks that least caloric dishes for remaining slots don't exceed it.
+        return spec.MaxDailyCalories == int.MaxValue
+            || current + minRest <= spec.MaxDailyCalories;
+    }
+
+    // Final check of the complete plan. Since heuristic methods are optimized for speed,
+    // the check by the full validator ensures that all constraints are satisfied.
+    public bool SatisfiesFinalChecks() =>
+    ConstraintValidator.Validate(Problem, State.Assignment) == ConstraintViolation.None;
+
+    // Checks whether the time or node limit is reached,
+    // or is the search cancelled from outside.
+    public bool ShouldStop()
+    {
+        // Avoids recalculating limits if they were already reached.
+        if (LimitReached)
+        {
+            return true;
+        }
+
+        // Handles the external cancellation requests.
+        _cancellationToken.ThrowIfCancellationRequested();
+
+        // Checks if explored nodes reached the limit 
+        if (ExploredNodes >= _nodeLimit)
+        {
+            LimitReached = true;
+
+            return true;
+        }
+
+        // Checks if the time limit is reached. Only performed once in 1024 nodes,
+        // to avoid the overhead of calling Stopwatch.GetTimestamp() for every node.
+        if ((ExploredNodes & 1023) == 0 && Stopwatch.GetTimestamp() - _startTicks > _tickLimit)
+        {
+            LimitReached = true;
+
+            return true;
+        }
+
+        return false;
     }
 
     // Recomputes only if _countsFresh is false
