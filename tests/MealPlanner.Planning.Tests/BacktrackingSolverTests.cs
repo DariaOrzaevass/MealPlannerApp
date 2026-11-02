@@ -81,4 +81,100 @@ public class BacktrackingSolverTests
         first.ExploredNodes.Should().Be(second.ExploredNodes);
     }
 
+    // Checks that BacktrackingSolver proves infeasibility when the budget is too small
+    [Fact]
+    public void Solve_Should_ProveInfeasibility_WhenBudgetIsTooSmall()
+    {
+        // Creates and solves a problem with an insufficient budget
+        PlanningProblem problem = Problem(dishCount: 40, budgetMinorUnits: 60_000, seed: 2);
+        PlanSolution solution = new BacktrackingSolver().Solve(problem);
+
+        // Checks that the solver proved that no feasible solution exists
+        solution.Status.Should().Be(PlanningStatus.Infeasible);
+        solution.FailureReason.Should().Contain("No feasible solution");
+    }
+
+    // Checks that BacktrackingSolver proves infeasibility when the repeat limits is too strict
+    [Fact]
+    public void Solve_Should_ProveInfeasibility_WhenRepeatLimitIsTooStrict()
+    {
+        // Creates a catalog with only 3 Lunch dishes
+        DishCatalog catalog = DishCatalogBuilder.Build(
+        [
+            CatalogFactory.Dish(suitableFor: MealKinds.Lunch, ingredientIds: [0]),
+            CatalogFactory.Dish(suitableFor: MealKinds.Lunch, ingredientIds: [1]),
+            CatalogFactory.Dish(suitableFor: MealKinds.Lunch, ingredientIds: [2])
+        ]);
+
+        // Creates a problem with 7 days of Lunches, but the repeat limit is 1
+        PlanningProblem problem = PlanningProblem.Create(
+            catalog,
+            PlanningSpec.Create(
+                budgetMinorUnits: 10_000_000,
+                durationDays: 7,
+                mealsPerDay: [MealKinds.Lunch],
+                maxRepeats: 1),
+            seed: 1);
+
+        // Runs the backtracking solver
+        PlanSolution solution = new BacktrackingSolver().Solve(problem);
+
+        // No feasible solution should exist, since there are
+        // only 3 dishes that cannot be repeated and 7 slots to fill.
+        solution.Status.Should().Be(PlanningStatus.Infeasible);
+    }
+
+    // Checks that backtraking can find solution, when greedy fails to do so.
+    [Fact]
+    public void Solve_Should_FindPlan_WhereGreedyFails()
+    {
+        // Creates a problem that greedy cannot solve
+        PlanningProblem problem = Problem(dishCount: 60, budgetMinorUnits: 260_000, seed: 6);
+
+        // Runs the greedy solver and the backtracking solver on the same problem
+        PlanSolution greedy = new GreedySolver().Solve(problem);
+        PlanSolution exact = new BacktrackingSolver().Solve(problem);
+
+        // The test is relevant only when greedy fails to find a solution
+        if (greedy.IsSolved)
+        {
+            return;
+        }
+
+        // Checks that backtracking successfully created
+        // a meal plan and no constraints were violated
+        exact.IsSolved.Should().BeTrue(exact.FailureReason);
+        ConstraintValidator.Validate(problem, [.. exact.Assignment])
+            .Should().Be(ConstraintViolation.None);
+    }
+
+    // Checks that the solver respects the time limit and doesn't run indefinitely.
+    [Fact]
+    public void Solve_Should_RespectTimeLimit()
+    {
+        // Creates a problem that is hard to solve
+        PlanningProblem problem = Problem(
+            dishCount: 400,
+            budgetMinorUnits: 330_000,
+            maxRepeats: 2,
+            minDaysBetweenRepeats: 3,
+            minDailyCalories: 2400,
+            maxDailyCalories: 2500,
+            seed: 12);
+
+        // Creates a solver with a time limit of 300 milliseconds
+        var solver = new BacktrackingSolver(timeLimit: TimeSpan.FromMilliseconds(300));
+
+        // Runs the backtracking solver
+        PlanSolution solution = solver.Solve(problem);
+
+        // Checks that the solver doesn't exceeded the larger upper time limit of 2 seconds
+        solution.Elapsed.Should().BeLessThan(TimeSpan.FromSeconds(2));
+
+        // Checks that if solution wasn't found, no partial assignment was returned
+        if (!solution.IsSolved)
+        {
+            solution.Assignment.Should().BeEmpty();
+        }
+    }
 }

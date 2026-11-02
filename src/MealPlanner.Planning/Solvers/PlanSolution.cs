@@ -10,14 +10,14 @@ namespace MealPlanner.Planning.Solvers;
 public sealed class PlanSolution
 {
     private PlanSolution(
-    PlanningStatus status,
-    int[] assignment,
-    int totalCostMinorUnits,
-    double objective,
-    long exploredNodes,
-    long elapsedTicks,
-    string? failureReason,
-    bool isProvenOptimal)
+        PlanningStatus status,
+        int[] assignment,
+        int totalCostMinorUnits,
+        double objective,
+        long exploredNodes,
+        long elapsedTicks,
+        string? failureReason,
+        bool isProvenOptimal)
     {
         Status = status;
         IsProvenOptimal = isProvenOptimal;
@@ -59,26 +59,26 @@ public sealed class PlanSolution
     // Stopwatch.Frequency tells how many ticks happens in 1 second, so Elapsed converts
     // ticks into seconds and then gives the TimeSpan to use seconds or milliseconds later
     public TimeSpan Elapsed => TimeSpan.FromSeconds(
-    (double)ElapsedTicks / System.Diagnostics.Stopwatch.Frequency);
+        (double)ElapsedTicks / System.Diagnostics.Stopwatch.Frequency);
 
     // Measures the diversity of the plan - a proportion of meal slots that has different dishes
     public double DiversityIndex =>
-    Assignment.Count == 0 ? 0 : (double)Assignment.Distinct().Count() / Assignment.Count;
+        Assignment.Count == 0 ? 0 : (double)Assignment.Distinct().Count() / Assignment.Count;
 
     // What fraction of the user's budget was spend
     public double BudgetUsage(PlanningSpec spec) =>
-    spec.BudgetMinorUnits == 0 ? 0 : (double)TotalCostMinorUnits / spec.BudgetMinorUnits;
+        spec.BudgetMinorUnits == 0 ? 0 : (double)TotalCostMinorUnits / spec.BudgetMinorUnits;
 
     // Creates a successful solution result
     public static PlanSolution Solved(
-    int[] assignment,
-    int totalCostMinorUnits,
-    double objective,
-    long exploredNodes,
-    long elapsedTicks,
-    bool isProvenOptimal = false) =>
-    new(PlanningStatus.Solved, assignment, totalCostMinorUnits, objective,
-        exploredNodes, elapsedTicks, failureReason: null, isProvenOptimal);
+        int[] assignment,
+        int totalCostMinorUnits,
+        double objective,
+        long exploredNodes,
+        long elapsedTicks,
+        bool isProvenOptimal = false) =>
+        new(PlanningStatus.Solved, assignment, totalCostMinorUnits, objective,
+            exploredNodes, elapsedTicks, failureReason: null, isProvenOptimal);
 
     // Creates infeasible solution result
     public static PlanSolution Infeasible(string reason, long exploredNodes, long elapsedTicks) =>
@@ -87,6 +87,6 @@ public sealed class PlanSolution
 
     // Creates an exhausted solution result
     public static PlanSolution Exhausted(string reason, long exploredNodes, long elapsedTicks) =>
-    new(PlanningStatus.Exhausted, [], 0, double.PositiveInfinity,
-        exploredNodes, elapsedTicks, reason, isProvenOptimal: false);
+        new(PlanningStatus.Exhausted, [], 0, double.PositiveInfinity,
+            exploredNodes, elapsedTicks, reason, isProvenOptimal: false);
 }
