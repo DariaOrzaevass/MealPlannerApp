@@ -155,7 +155,7 @@ internal sealed class SearchContext
     // than recorded. Returns true in any of these cases: it is a backtracking, there
     // is no best solution yet, and the branch can still become better than the best plan
     public bool CanImproveOnBest() =>
-    !Optimize || BestAssignment is null || LowerBoundObjective() < BestObjective;
+        !Optimize || BestAssignment is null || LowerBoundObjective() < BestObjective;
 
     // Marks the slot as assigned and sets _countsFresh to false
     // to show that feasible-domains counts may become outdated
@@ -222,9 +222,9 @@ internal sealed class SearchContext
     // If the slot is pinned, its domain contains only the pinned dish.
     // Ordered domains are built for meal kinds and do not know that
     public ReadOnlySpan<int> OrderedDomain(SlotDescriptor slot) =>
-    Problem.Spec.IsPinned(slot.Index)
-        ? Problem.Domains.ForSlot(slot)
-        : _orderedDomains[MealKindIndex.ToIndex(slot.Kind)] ?? Problem.Domains.ForSlot(slot);
+        Problem.Spec.IsPinned(slot.Index)
+            ? Problem.Domains.ForSlot(slot)
+            : _orderedDomains[MealKindIndex.ToIndex(slot.Kind)] ?? Problem.Domains.ForSlot(slot);
 
     // Pruning by the lowest budget bound. If even the cheapest dishes
     // for the remaining slots cannot exceeds the budget - prune the branch

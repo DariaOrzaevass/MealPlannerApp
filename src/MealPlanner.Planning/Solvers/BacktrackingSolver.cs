@@ -140,10 +140,9 @@ public sealed class BacktrackingSolver : IMealPlanSolver
         }
     }
 
-    // Recursive depth-first search for solution.
-    // Returns true if the search should stop.
-    // For backtracking it stops when the first feasible solution is found.
-    // For branch and bound - when any limit is reached.
+    // Recursive depth-first search for solution. Returns true for the backtracking,
+    // when the first feasible solution is found, and stops the search.
+    // For branch and bound it stops, only when the tree is exhausted or any limit is reached.
     private static bool Search(SearchContext context)
     {
         // If the meal plan is complete
@@ -171,6 +170,64 @@ public sealed class BacktrackingSolver : IMealPlanSolver
             return false;
         }
 
+        // The decision node is expanded,
+        // the number of explored nodes is incremented.
+        context.ExploredNodes++;
+
+        // Choose the next slot to assign dish to and gets information about it.
+        // If MRV heuristic is disabled, it will be the first unassigned slot.
+        int slotIndex = context.SelectSlot();
+        SlotDescriptor slot = context.Problem.Spec.Slots[slotIndex];
+
+        // Iterates through the candidate dishes in the ordered domain, if the
+        // ValueOrdering heuristic is enabled, otherwise in the original order.
+        foreach (int dish in context.OrderedDomain(slot))
+        {
+            // Checks that the dish can be assigned to the slot, otherwise skips it.
+            if (!context.State.CanPlace(slot, dish))
+            {
+                continue;
+            }
+
+            // Pruning by the budget bound. If even the cheapest dishes
+            // remaining cannot fit the budget, the branch is pruned.
+            if (!context.FitsBudgetBound(slot, dish))
+            {
+                continue;
+            }
+
+            // The dish is assigned to the slot,
+            // and the slot is marked as assigned.
+            context.State.Place(slot, dish);
+            context.MarkAssigned(slotIndex);
+
+            // Checks that branch can still lead to feasible, better solution -
+            // are daily calories reachable, is the objective still improvable,
+            // and are there feasible dishes for all unassigned slots.
+            bool deadEnd = !context.DayCaloriesStillReachable(slot.Day)
+                || !context.CanImproveOnBest()
+                || !context.ForwardCheckPasses();
+
+            // If the branch is not pruned, the search continues recursively.
+            if (!deadEnd && Search(context))
+            {
+                return true;
+            }
+
+            // Undo the current choice and continue with the next candidate.
+            context.UnmarkAssigned(slotIndex);
+            context.State.Remove(slot);
+
+            // Checks whether the search should stop
+            // due to time or node limits, or cancellation.
+            if (context.ShouldStop())
+            {
+                return false;
+            }
+        }
+
+        // The search is finished for this node and no solution
+        // is found, the search continues in the parent node.
         return false;
     }
 }
