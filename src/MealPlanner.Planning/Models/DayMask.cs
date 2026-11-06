@@ -44,7 +44,7 @@ public static class DayMask
         int length = to - from + 1;
 
         // Creates mask of length consecutive 1-bits. If length is = the maximum
-        // amount of days it would just give 1, but we need ulong.MaxValue
+        // amount of days, it would just give 1, but we need ulong.MaxValue
         ulong ones = length >= MaxDays ? ulong.MaxValue : (1UL << length) - 1UL;
 
         // Shifts the mask to the required position

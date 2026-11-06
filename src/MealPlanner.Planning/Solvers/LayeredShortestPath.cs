@@ -9,7 +9,7 @@ namespace MealPlanner.Planning.Solvers;
 internal static class LayeredShortestPath
 {
     // The result of the search. Found - is there a path. Assignment - dishes in slots/layers.
-    // PathWeight - the weight of the path with penalties. ExploredNodes - number of explored nodes.
+    // PathWeight - the total weight of the path. ExploredNodes - number of explored nodes.
     internal readonly record struct Result(
         bool Found,
         int[] Assignment,

@@ -33,7 +33,7 @@ public sealed class DishIndex
         var counts = new int[ingredientCount + 1];
 
         // To not to count one ingredient twice in the dish lastDish stores
-        // the last dish to which this ingredient has been procressed
+        // the last dish to which this ingredient has been processed
         var lastDish = new int[ingredientCount];
         Array.Fill(lastDish, -1);
 

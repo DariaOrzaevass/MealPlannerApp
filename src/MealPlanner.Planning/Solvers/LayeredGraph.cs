@@ -28,7 +28,6 @@ internal sealed class LayeredGraph
         Source = DishNodeCount;
         Sink = DishNodeCount + 1;
         NodeCount = DishNodeCount + 2;
-        NodePenalty = new double[DishNodeCount];
     }
 
     // The number of layers. Is equal to the number of meal plan entries
@@ -51,51 +50,6 @@ internal sealed class LayeredGraph
 
     // At which layer is the node
     public int LayerOf(int node) => _nodeLayer[node];
-
-    // Binary search to find out the node index that corresponds to a
-    // particular dish in a particular layer. -1 if dish is not allowed there
-    public int NodeOf(int layer, int dish)
-    {
-        // Indexes that layer occupy from low to high
-        int low = _layerOffsets[layer];
-        int high = _layerOffsets[layer + 1] - 1;
-
-        while (low <= high)
-        {
-            int middle = low + ((high - low) / 2);
-            int value = _nodeDish[middle];
-
-            if (value == dish)
-            {
-                return middle;
-            }
-
-            if (value < dish)
-            {
-                low = middle + 1;
-            }
-            else
-            {
-                high = middle - 1;
-            }
-        }
-
-        return -1;
-    }
-
-    // An array of node penalties
-    public double[] NodePenalty { get; }
-
-    // Exctra multiplier for a cost component in the weight.
-    // Can make cost affect algorithm more or less
-    public double ExtraCostMultiplier { get; set; }
-
-    // Clears all penalties
-    public void ResetPenalties()
-    {
-        Array.Clear(NodePenalty);
-        ExtraCostMultiplier = 0;
-    }
 
     // Returns a range(half-open) of nodes belonging to
     // this layer including the beginning of the next layer
@@ -147,8 +101,8 @@ internal sealed class LayeredGraph
     {
         int dish = _nodeDish[node];
 
-        // Returns the cost penalty together with preference penalty and node penalty
-        return CostTerm(dish) + PreferenceTerm(dish) + NodePenalty[node];
+        // Returns the cost penalty together with preference penalty
+        return CostTerm(dish) + PreferenceTerm(dish);
     }
 
     // The weight of transitioning from one layer to another. Monotony is
@@ -160,8 +114,7 @@ internal sealed class LayeredGraph
 
         return CostTerm(toDish)
             + PreferenceTerm(toDish)
-            + MonotonyTerm(fromDish, toDish)
-            + NodePenalty[toNode];
+            + MonotonyTerm(fromDish, toDish);
     }
 
     // Checks whether transition is allowed
@@ -189,7 +142,7 @@ internal sealed class LayeredGraph
 
     // Turns the price of the dish to cost penalty
     private double CostTerm(int dish) =>
-    (_problem.Weights.Cost + ExtraCostMultiplier)
+    (_problem.Weights.Cost)
     * _problem.Catalog.CostMinorUnits[dish]
     / _problem.Spec.BudgetMinorUnits;
 

@@ -68,11 +68,11 @@ public readonly record struct AllergenMask(ulong Bits)
 
     // Bitwise OR to combine two masks in one
     public static AllergenMask operator |(AllergenMask left, AllergenMask right) =>
-    new(left.Bits | right.Bits);
+        new(left.Bits | right.Bits);
 
     // Bitwise AND for checking bitmasks and comparing them
     public static AllergenMask operator &(AllergenMask left, AllergenMask right) =>
-    new(left.Bits & right.Bits);
+        new(left.Bits & right.Bits);
 
     // Returns positions of allegrens present in the bitmask
     public int[] ToPositions()
@@ -100,5 +100,5 @@ public readonly record struct AllergenMask(ulong Bits)
 
     // Overrides ToString to return all allergens present in the bitmask
     public override string ToString() =>
-    IsEmpty ? "{}" : $"{{{string.Join(", ", ToPositions())}}}";
+        IsEmpty ? "{}" : $"{{{string.Join(", ", ToPositions())}}}";
 }

@@ -1,8 +1,13 @@
 # MealPlannerApp
 
 Meal Planner application creates the meal plan based on the Meal Catalog and the constraints of the user
-(allergens, disliked ingredients, budget, etc.). The Dijkstra's algorithm from the Planning layer searches
-for the shortest path in the LayeredGraph with the IndexedBinaryHeap.
+(allergens, disliked ingredients, budget, etc.).
+
+- The Greedy algorithm makes locally best choices, repairs the budget afterwards.
+- The Dijkstra's algorithm from the Planning layer searches for the shortest path in the LayeredGraph with the IndexedBinaryHeap.
+- The Backtracking searches recursively with feasibility pruning.
+- The Branch and Bound similar to Backtracking, but also prunes the branch when the lower bound of its objective
+  function cost cannot become better than the objective function cost of the best plan.
 
 ## Architecture
 
@@ -46,3 +51,5 @@ Current tests:
 - DishIndex against a simple scan
 - IndexedBinaryHeapTests
 - ShortestPathsTests against Bellman-Ford
+- BacktrackingSolverTests
+- GreedySolverTests
