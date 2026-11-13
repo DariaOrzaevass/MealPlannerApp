@@ -19,7 +19,7 @@ public sealed class IndexedBinaryHeap<TPriority>
     // The heap itself in the structure right now (id). Size - number of dishes
     private readonly int[] _heap;
 
-    // the position in the tree. if not in it -1, if the top node - 0, then 1, 2...
+    // The position in the tree. if not in it -1, if the top node - 0, then 1, 2...
     private readonly int[] _position;
 
     // Priority of the node
@@ -115,7 +115,7 @@ public sealed class IndexedBinaryHeap<TPriority>
         Count++;
 
         // If the new element is less than its parent, we need to shift it up
-        ShiftUp(Count - 1);
+        SiftUp(Count - 1);
     }
 
     // Get id with the minimum priority without popping it
@@ -150,7 +150,7 @@ public sealed class IndexedBinaryHeap<TPriority>
             _position[last] = 0;
 
             // Then shift in down until the tree it is placed according to its priority
-            ShiftDown(0);
+            SiftDown(0);
         }
 
         // Now the popped node is not in the hep
@@ -162,7 +162,7 @@ public sealed class IndexedBinaryHeap<TPriority>
 
 
     // Shifts the element up if priority is less than its parent
-    private void ShiftUp(int index)
+    private void SiftUp(int index)
     {
         // Remember, what are we shifting up. 
         int id = _heap[index];
@@ -192,7 +192,7 @@ public sealed class IndexedBinaryHeap<TPriority>
     }
 
     // Shifts the element down if priority is bigger than its child
-    private void ShiftDown(int index)
+    private void SiftDown(int index)
     {
         int id = _heap[index];
         TPriority priority = _priority[id]!;
@@ -261,7 +261,7 @@ public sealed class IndexedBinaryHeap<TPriority>
         // The elements gets the new priority and can now have a
         // smaller one than its parents - needs to be shifted up
         _priority[id] = newPriority;
-        ShiftUp(index);
+        SiftUp(index);
     }
 
     // Push a new element in the heap or decrease its priority. Useful for Dijkstra

@@ -237,7 +237,7 @@ public class GreedySolverTests
         }
     }
 
-    // Checks that solved plan does not violate maximum calirie number
+    // Checks that solved plan does not violate maximum calorie number
     [Fact]
     public void Solve_Should_RespectDailyCalorieCeiling()
     {
