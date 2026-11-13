@@ -30,7 +30,7 @@ public static class DayMask
         }
 
         // the beginning and ending of the forbidden window of days.
-        // Cannot have less then 1 days or longer than the plan duration
+        // Cannot have less than 1 days or longer than the plan duration
         int from = Math.Max(1, day - gap + 1);
         int to = Math.Min(durationDays, day + gap - 1);
 

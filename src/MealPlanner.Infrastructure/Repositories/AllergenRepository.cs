@@ -18,7 +18,7 @@ internal sealed class AllergenRepository(ApplicationDbContext context)
             .ToListAsync(cancellationToken);
 
     // Finds the largest occupied bit position used by allergen.
-    // It is neede to assign next position when adding a new allergen.
+    // It is needed to assign next position when adding a new allergen.
     public async Task<int> GetMaxBitPositionAsync(CancellationToken cancellationToken = default)
     {
         // MaxAsync would fail on an empty table, so nullable type
