@@ -7,7 +7,7 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace MealPlanner.Application;
 
-// Registration of supportiong services for the Application layer
+// Registration of supporting services for the Application layer
 public static class DependencyInjection
 {
     public static IServiceCollection AddApplication(

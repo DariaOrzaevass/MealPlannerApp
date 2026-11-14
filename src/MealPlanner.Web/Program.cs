@@ -1,6 +1,13 @@
+using MealPlanner.Application;
+using MealPlanner.Infrastructure;
+
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
+// Registers services of the Application layer
+//builder.Services.AddApplication(builder.Configuration);
+
+// Registers services of the Infrastructure layer
+//builder.Services.AddInfrastructure(builder.Configuration);
 
 builder.Services.AddControllers();
 
