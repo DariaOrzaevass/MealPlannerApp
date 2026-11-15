@@ -22,7 +22,8 @@ builder.Services.AddControllers();
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
+// Applies migrations and fill the catalog with data
+await app.PrepareDatabaseAsync();
 
 app.UseAuthorization();
 

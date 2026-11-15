@@ -1,4 +1,1 @@
-services:
-  mealplanner-web:
-    environment:
-      - A=1
+services: {}
