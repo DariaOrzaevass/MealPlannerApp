@@ -11,11 +11,18 @@
     <PackageReference Include="Microsoft.Extensions.Configuration.Abstractions" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" />
     <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" />
+    <PackageReference Include="Scrutor" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\MealPlanner.Domain\MealPlanner.Domain.csproj" />
     <ProjectReference Include="..\MealPlanner.Planning\MealPlanner.Planning.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Catalog\" />
+    <Folder Include="Dishes\" />
+    <Folder Include="MealPlans\" />
   </ItemGroup>
 
 </Project>
