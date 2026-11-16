@@ -1,5 +1,6 @@
 using MealPlanner.Application;
 using MealPlanner.Infrastructure;
+using MealPlanner.Web.Endpoints;
 using MealPlanner.Web.Extensions;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -19,6 +20,16 @@ builder.Services.AddInfrastructure(builder.Configuration);
 builder.Services.AddApplicationAuthentication();
 
 builder.Services.AddControllers();
+
+// Endpoints are discovered by scanning the assembly - see EndpoinExtensions.
+builder.Services.AddEndpoints();
+
+// The OpenAPI description is generated from route metadata
+builder.Services.AddOpenApi(options =>
+{
+    options.AddDocumentTransformer<OpenApiDocumentInfo>();
+    options.AddSchemaTransformer<OpenApiEnumValues>();
+});
 
 var app = builder.Build();
 
