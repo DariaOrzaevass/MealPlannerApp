@@ -1,5 +1,6 @@
 using MealPlanner.Application.Abstractions.Authentication;
 using MealPlanner.Application.Dishes.GetDishes;
+using MealPlanner.Application.MealPlans.GetMealPlans;
 using MealPlanner.Domain.Abstractions;
 using MealPlanner.Domain.Allergens;
 using MealPlanner.Domain.Dishes;
@@ -69,6 +70,7 @@ public static class DependencyInjection
         services.AddScoped<IIngredientRepository, IngredientRepository>();
         services.AddScoped<IDishRepository, DishRepository>();
         services.AddScoped<IMealPlanRepository, MealPlanRepository>();
+        services.AddScoped<IMealPlanReadRepository, MealPlanReadRepository>();
         services.AddScoped<IDishReadRepository, DishReadRepository>();
 
         services.AddScoped<IUserRepository, UserRepository>();
