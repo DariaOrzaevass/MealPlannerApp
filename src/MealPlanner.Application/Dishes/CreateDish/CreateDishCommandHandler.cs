@@ -10,7 +10,7 @@ using MealPlanner.Domain.Shared;
 namespace MealPlanner.Application.Dishes.CreateDish;
 
 // Creates a dish with its ingredients.
-// The existance of ingredients is checked before the dish is constructed:
+// The existence of ingredients is checked before the dish is constructed:
 // Without this check, a reference to a non-existent ingredient would reach
 // the database and cause a foreign key constraint violation, resulting in
 // an exception instead of a meaningful failure result.
