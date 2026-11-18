@@ -10,13 +10,13 @@ namespace MealPlanner.Application.Dishes.GetDishes;
 internal sealed class GetDishesQueryHandler(IDishReadRepository dishes)
     : IQueryHandler<GetDishesQuery, DishPageResponse>
 {
-    // Maximum page size. With this requests cannot
+    // Maximum page size. With this, requests cannot
     // force the database to return all of the catalog.
     private const int _maxPageSize = 100;
 
     public async Task<Result<DishPageResponse>> Handle(
-    GetDishesQuery query,
-    CancellationToken cancellationToken)
+        GetDishesQuery query,
+        CancellationToken cancellationToken)
     {
         int page = Math.Max(1, query.Page);
 
