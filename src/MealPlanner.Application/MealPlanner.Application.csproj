@@ -21,7 +21,6 @@
 
   <ItemGroup>
     <Folder Include="Catalog\" />
-    <Folder Include="Dishes\" />
     <Folder Include="MealPlans\" />
   </ItemGroup>
 
