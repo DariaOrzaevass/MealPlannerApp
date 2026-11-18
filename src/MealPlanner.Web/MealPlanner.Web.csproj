@@ -23,7 +23,6 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Controllers\" />
-    <Folder Include="Endpoints\Dishes\" />
     <Folder Include="Endpoints\Catalog\" />
     <Folder Include="Endpoints\MealPlans\" />
   </ItemGroup>
