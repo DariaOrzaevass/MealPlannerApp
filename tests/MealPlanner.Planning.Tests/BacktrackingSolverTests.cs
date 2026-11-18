@@ -8,6 +8,7 @@ using FluentAssertions;
 
 namespace MealPlanner.Planning.Tests;
 
+// Tests for Backtracking algorithm
 public class BacktrackingSolverTests
 {
     // Most tests use this standard schedule
@@ -41,7 +42,7 @@ public class BacktrackingSolverTests
     [Fact]
     public void Solve_Should_BuildFeasiblePlan()
     {
-        // Creates a default problem for 7 days and 3 meals gives 21 slots
+        // Creates a default problem. For 7 days and 3 meals that gives 21 slots
         PlanningProblem problem = Problem();
 
         // Runs the backtracking solver
