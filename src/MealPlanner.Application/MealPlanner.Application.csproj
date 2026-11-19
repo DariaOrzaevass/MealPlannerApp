@@ -19,8 +19,4 @@
     <ProjectReference Include="..\MealPlanner.Planning\MealPlanner.Planning.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="Catalog\" />
-  </ItemGroup>
-
 </Project>
