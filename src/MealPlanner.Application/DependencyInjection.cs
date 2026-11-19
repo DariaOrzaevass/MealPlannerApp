@@ -5,6 +5,8 @@ using System.Text;
 using FluentValidation;
 using MealPlanner.Application.Abstractions.Decorators;
 using MealPlanner.Application.Abstractions.Messaging;
+using MealPlanner.Application.Catalog;
+using MealPlanner.Application.MealPlans;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -22,6 +24,11 @@ public static class DependencyInjection
     {
         ArgumentNullException.ThrowIfNull(services);
         ArgumentNullException.ThrowIfNull(configuration);
+
+        services.AddSingleton<ICatalogSnapshotProvider, CatalogSnapshotProvider>();
+
+        services.Configure<PlanningOptions>(
+            configuration.GetSection(PlanningOptions.SectionName));
 
         services.AddScoped<IDomainEventDispatcher, DomainEventDispatcher>();
 
