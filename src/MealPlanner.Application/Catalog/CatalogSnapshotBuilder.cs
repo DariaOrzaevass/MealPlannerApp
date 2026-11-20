@@ -13,7 +13,7 @@ using MealPlanner.Planning.Solvers;
 namespace MealPlanner.Application.Catalog;
 
 // Converts domain entities to the snapshot for the planning.
-// The only place where Planning and Domain meet.
+// The one of only two places where Planning and Domain meet.
 // Everything else works either with Domain or Planning.
 public static class CatalogSnapshotBuilder
 {
