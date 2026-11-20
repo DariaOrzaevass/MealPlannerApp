@@ -19,15 +19,15 @@ public sealed class MealPlan : Entity<MealPlanId>
     // Private constructor so that the meal plan can only
     // be created using the Create method with validation
     private MealPlan(
-    MealPlanId id,
-    UserId userId,
-    string name,
-    DateOnly startDate,
-    PlanningConstraints constraints,
-    PlannerAlgorithm algorithm,
-    long generationMs,
-    long exploredNodes)
-    : base(id)
+        MealPlanId id,
+        UserId userId,
+        string name,
+        DateOnly startDate,
+        PlanningConstraints constraints,
+        PlannerAlgorithm algorithm,
+        long generationMs,
+        long exploredNodes)
+        : base(id)
     {
         UserId = userId;
         Name = name;
@@ -124,6 +124,8 @@ public sealed class MealPlan : Entity<MealPlanId>
 
         return plan;
     }
+
+    public bool IsOwnedBy(UserId userId) => UserId == userId;
 
     // Recalculates the total cost of the plan
     private void RecalculateTotal() =>
