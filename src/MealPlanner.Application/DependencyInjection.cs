@@ -30,6 +30,8 @@ public static class DependencyInjection
         services.Configure<PlanningOptions>(
             configuration.GetSection(PlanningOptions.SectionName));
 
+        services.AddSingleton<IMealPlanSolverFactory, MealPlanSolverFactory>();
+
         services.AddScoped<IDomainEventDispatcher, DomainEventDispatcher>();
 
         AddHandlers(services);
