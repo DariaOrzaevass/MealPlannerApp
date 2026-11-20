@@ -21,17 +21,17 @@ namespace MealPlanner.Application.Catalog;
 public sealed class CatalogSnapshot
 {
     internal CatalogSnapshot(
-    DishCatalog catalog,
-    DishIndex index,
-    SimilarityMetric similarity,
-    SimilarityGraph similarityGraph,
-    DishId[] dishIds,
-    string[] dishNames,
-    int[] dishCostMinorUnits,
-    Dictionary<DishId, int> indexByDishId,
-    Dictionary<IngredientId, int> indexByIngredientId,
-    Dictionary<AllergenId, int> bitByAllergenId,
-    Currency currency)
+        DishCatalog catalog,
+        DishIndex index,
+        SimilarityMetric similarity,
+        SimilarityGraph similarityGraph,
+        DishId[] dishIds,
+        string[] dishNames,
+        int[] dishCostMinorUnits,
+        Dictionary<DishId, int> indexByDishId,
+        Dictionary<IngredientId, int> indexByIngredientId,
+        Dictionary<AllergenId, int> bitByAllergenId,
+        Currency currency)
     {
         Catalog = catalog;
         Index = index;
@@ -46,10 +46,10 @@ public sealed class CatalogSnapshot
         Currency = currency;
     }
 
-    // Catalog in the form that is used by solvers
+    // Catalog in the form that is used by the solvers
     public DishCatalog Catalog { get; }
 
-    // inverted index "ingredient -> dishes"
+    // Inverted index "ingredient -> dishes"
     public DishIndex Index { get; }
 
     // Similarity Metric. Is build together with catalog because
@@ -63,13 +63,13 @@ public sealed class CatalogSnapshot
     // Dish index in the planning -> domain identifier
     public IReadOnlyList<DishId> DishIds { get; }
 
-    // Dish index -> dish name. Needed for UI
+    // Dish index -> dish name. Needed for the UI
     public IReadOnlyList<string> DishNames { get; }
 
     // Dish index -> cost in Minor Units 
     public IReadOnlyList<int> DishCostMinorUnits { get; }
 
-    // domain identifier -> dish index in the planning
+    // Domain identifier -> dish index in the planning
     public IReadOnlyDictionary<DishId, int> IndexByDishId { get; }
 
     // ingredient identifier -> its index in planning.
