@@ -164,6 +164,34 @@ public sealed class MealPlan : Entity<MealPlanId>
         return Result.Success();
     }
 
+    public Result LockEntry(int dayNumber, MealType mealType)
+    {
+        MealPlanEntry? entry = FindEntry(dayNumber, mealType);
+
+        if (entry is null)
+        {
+            return Result.Failure(MealPlanErrors.EntryNotFound);
+        }
+
+        entry.Lock();
+
+        return Result.Success();
+    }
+
+    public Result UnlockEntry(int dayNumber, MealType mealType)
+    {
+        MealPlanEntry? entry = FindEntry(dayNumber, mealType);
+
+        if (entry is null)
+        {
+            return Result.Failure(MealPlanErrors.EntryNotFound);
+        }
+
+        entry.Unlock();
+
+        return Result.Success();
+    }
+
     public bool IsOwnedBy(UserId userId) => UserId == userId;
 
     // Recalculates the total cost of the plan
