@@ -20,7 +20,8 @@ namespace MealPlanner.Application.MealPlans.RegenerateMealPlan;
 internal sealed class RegenerateMealPlanCommandHandler(
     ICatalogSnapshotProvider snapshots,
     IMealPlanSolverFactory solvers,
-    IMealPlanRepository mealPlans) : ICommandHandler<RegenerateMealPlanCommand, GenerateMealPlanResponse>
+    IMealPlanRepository mealPlans,
+    IUnitOfWork unitOfWork) : ICommandHandler<RegenerateMealPlanCommand, GenerateMealPlanResponse>
 {
     public async Task<Result<GenerateMealPlanResponse>> Handle(
         RegenerateMealPlanCommand command,
@@ -64,9 +65,51 @@ internal sealed class RegenerateMealPlanCommandHandler(
             return Result.Failure<GenerateMealPlanResponse>(spec.Error);
         }
 
-        // delete later, only to compile
-        return Result.Failure<GenerateMealPlanResponse>(MealPlanErrors.NotFound(planId));
+        PlanningProblem problem = PlanningProblem.Create(
+            snapshot.Catalog,
+            spec.Value,
+            index: snapshot.Index,
+            similarity: snapshot.Similarity);
 
+        if (problem.Domains.HasEmptyDomain)
+        {
+            return Result.Failure<GenerateMealPlanResponse>(PlanningErrors.NothingLeftToOffer);
+        }
+
+        PlanSolution solution = solver.Value.Solve(problem, cancellationToken);
+
+        if (!solution.IsSolved)
+        {
+            return Result.Failure<GenerateMealPlanResponse>(
+                solution.Status == PlanningStatus.Infeasible
+                    ? PlanningErrors.Infeasible
+                    : PlanningErrors.Exhausted);
+        }
+
+        var generationMs = (long)solution.Elapsed.TotalMilliseconds;
+
+        Result replanned = plan.Replan(
+            ToDrafts(solution, spec.Value, snapshot),
+            algorithm,
+            generationMs,
+            solution.ExploredNodes);
+
+        if (replanned.IsFailure)
+        {
+            return Result.Failure<GenerateMealPlanResponse>(replanned.Error);
+        }
+
+        await unitOfWork.SaveChangesAsync(cancellationToken);
+
+        return new GenerateMealPlanResponse(
+            plan.Id.Value,
+            solver.Value.Name,
+            plan.TotalCost.Amount,
+            solution.BudgetUsage(spec.Value),
+            solution.DiversityIndex,
+            generationMs,
+            solution.ExploredNodes,
+            solution.IsProvenOptimal);
     }
 
     private static Result<Layout> BuildLayout(MealPlan plan, CatalogSnapshot snapshot)
@@ -83,19 +126,7 @@ internal sealed class RegenerateMealPlanCommandHandler(
                 return Result.Failure<Layout>(PlanningErrors.DishOutOfCatalog);
             }
 
-            int mealIndex;
-            IReadOnlyList<MealType> meals = plan.Constraints.MealsPerDay;
-            MealType meal = entry.MealType;
-
-            for (int i = 0; i < meals.Count; i++)
-            {
-                if (meals[i] == meal)
-                {
-                    mealIndex = i;
-                }
-            }
-
-            mealIndex = - 1;
+            int mealIndex = IndexOfMeal(plan.Constraints.MealsPerDay, entry.MealType);
 
             if (mealIndex < 0)
             {
@@ -115,6 +146,41 @@ internal sealed class RegenerateMealPlanCommandHandler(
         }
 
         return new Layout(pinned, excluded);
+    }
+
+    private static int IndexOfMeal(IReadOnlyList<MealType> meals, MealType meal)
+    {
+        for (int i = 0; i < meals.Count; i++)
+        {
+            if (meals[i] == meal)
+            {
+                return i;
+            }
+        }
+
+        return -1;
+    }
+
+    private static MealPlanEntryDraft[] ToDrafts(
+        PlanSolution solution,
+        PlanningSpec spec,
+        CatalogSnapshot snapshot)
+    {
+        var drafts = new MealPlanEntryDraft[solution.Assignment.Count];
+
+        for (int slot = 0; slot < drafts.Length; slot++)
+        {
+            int dish = solution.Assignment[slot];
+            SlotDescriptor descriptor = spec.Slots[slot];
+
+            drafts[slot] = new MealPlanEntryDraft(
+                descriptor.Day,
+                CatalogSnapshotBuilder.ToMealType(descriptor.Kind),
+                snapshot.DishIds[dish],
+                snapshot.CostOf(dish));
+        }
+
+        return drafts;
     }
 
     private readonly record struct Layout(
