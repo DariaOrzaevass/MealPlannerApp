@@ -4,6 +4,7 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Xml.Linq;
 using MealPlanner.Domain.Abstractions;
+using MealPlanner.Domain.Dishes;
 using MealPlanner.Domain.MealPlans.Events;
 using MealPlanner.Domain.Shared;
 using MealPlanner.Domain.Users;
@@ -123,6 +124,44 @@ public sealed class MealPlan : Entity<MealPlanId>
         plan.RaiseDomainEvent(new MealPlanGeneratedDomainEvent(plan.Id, algorithm, generationMs));
 
         return plan;
+    }
+
+    public MealPlanEntry? FindEntry(int dayNumber, MealType mealType) =>
+        _entries.Find(e => e.DayNumber == dayNumber && e.MealType == mealType);
+
+    public Result ReplaceDish(int dayNumber, MealType mealType, DishId newDishId, Money newCost)
+    {
+        MealPlanEntry? entry = FindEntry(dayNumber, mealType);
+
+        if (entry is null)
+        {
+            return Result.Failure(MealPlanErrors.EntryNotFound);
+        }
+
+        if (entry.IsLocked)
+        {
+            return Result.Failure(MealPlanErrors.EntryLocked);
+        }
+
+        if (entry.DishId == newDishId)
+        {
+            return Result.Failure(MealPlanErrors.SameDish);
+        }
+
+        Money projectedTotal = TotalCost - entry.Cost + newCost;
+
+        if (projectedTotal.Amount > Constraints.Budget.Amount)
+        {
+            return Result.Failure(MealPlanErrors.BudgetExceeded);
+        }
+
+        DishId oldDishId = entry.DishId;
+        entry.Replace(newDishId, newCost);
+        RecalculateTotal();
+
+        RaiseDomainEvent(new DishReplacedDomainEvent(Id, dayNumber, mealType, oldDishId, newDishId));
+
+        return Result.Success();
     }
 
     public bool IsOwnedBy(UserId userId) => UserId == userId;
