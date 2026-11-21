@@ -126,6 +126,54 @@ public sealed class MealPlan : Entity<MealPlanId>
         return plan;
     }
 
+    public Result Replan(
+        IReadOnlyCollection<MealPlanEntryDraft> drafts,
+        PlannerAlgorithm algorithm,
+        long generationMs,
+        long exploredNodes = 0)
+    {
+        Result layout = ValidateLayout(Constraints, drafts);
+
+        if (layout.IsFailure)
+        {
+            return layout;
+        }
+
+        foreach (MealPlanEntryDraft draft in drafts)
+        {
+            MealPlanEntry? entry = FindEntry(draft.DayNumber, draft.MealType);
+
+            if (entry is null)
+            {
+                return Result.Failure(MealPlanErrors.EntryNotFound);
+            }
+
+            if (entry.IsLocked)
+            {
+                if (entry.DishId != draft.DishId)
+                {
+                    return Result.Failure(MealPlanErrors.LockedEntryChanged);
+                }
+
+                continue;
+            }
+
+            if (entry.DishId != draft.DishId)
+            {
+                entry.Replace(draft.DishId, draft.Cost);
+            }
+        }
+
+        Algorithm = algorithm;
+        GenerationMs = generationMs;
+        ExploredNodes = exploredNodes;
+
+        RecalculateTotal();
+        RaiseDomainEvent(new MealPlanGeneratedDomainEvent(Id, algorithm, generationMs));
+
+        return Result.Success();
+    }
+
     public MealPlanEntry? FindEntry(int dayNumber, MealType mealType) =>
         _entries.Find(e => e.DayNumber == dayNumber && e.MealType == mealType);
 
@@ -196,9 +244,9 @@ public sealed class MealPlan : Entity<MealPlanId>
 
     // Recalculates the total cost of the plan
     private void RecalculateTotal() =>
-    TotalCost = _entries.Aggregate(
-        Money.Zero(Constraints.Budget.Currency),
-        (acc, entry) => acc + entry.Cost);
+        TotalCost = _entries.Aggregate(
+            Money.Zero(Constraints.Budget.Currency),
+            (acc, entry) => acc + entry.Cost);
 
     // Validates the input
     private static Result ValidateLayout(
