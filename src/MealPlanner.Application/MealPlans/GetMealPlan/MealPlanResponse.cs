@@ -25,10 +25,15 @@ public sealed record MealPlanResponse(
 public sealed record MealPlanDayResponse(
     int DayNumber,
     DateOnly Date,
+    int Calories,
+    decimal Cost,
     IReadOnlyList<MealPlanEntryResponse> Meals);
 
 // One meal plan entry
 public sealed record MealPlanEntryResponse(
     MealType MealType,
     Guid DishId,
+    string DishName,
+    int Calories,
+    decimal Cost,
     bool IsLocked);
