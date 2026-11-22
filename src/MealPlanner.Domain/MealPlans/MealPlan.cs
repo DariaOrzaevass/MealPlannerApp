@@ -240,6 +240,11 @@ public sealed class MealPlan : Entity<MealPlanId>
         return Result.Success();
     }
 
+    public double DiversityIndex() =>
+    _entries.Count == 0
+        ? 0
+        : (double)_entries.Select(e => e.DishId).Distinct().Count() / _entries.Count;
+
     public bool IsOwnedBy(UserId userId) => UserId == userId;
 
     // Recalculates the total cost of the plan
