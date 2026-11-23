@@ -1,4 +1,52 @@
 @page "/"
+@using MealPlanner.Application.Abstractions.Messaging
+@using MealPlanner.Application.Catalog.GetCatalogSummary
+@using MealPlanner.Domain.Abstractions
 @attribute [AllowAnonymous]
+@inject IQueryHandler<GetCatalogSummaryQuery, CatalogSummaryResponse> Summary
 
 <PageTitle>Meal Planner</PageTitle>
+
+<div class="card">
+    <h1>Meal Planner</h1>
+
+    <p>
+        Creates a meal plan taking into account the budget, allergies, diet, and other preferences. The problem this application
+        is solving is defined as a constrained optimization problem. Four algorithms are used to solve it: Greedy algorithm,
+        Dijkstra's algorithm, Backtracking, and Branch and Bound. The user can choose any of them and compare their results.
+    </p>
+
+    @if (_summary is not null)
+    {
+        <dl class="facts">
+            <div><dt>Dishes in catalog</dt><dd>@_summary.DishCount</dd></div>
+            <div><dt>Ingredients</dt><dd>@_summary.IngredientCount</dd></div>
+            <div><dt>Cost per serving</dt><dd>@_summary.MinDishCost.ToString("0.##") – @_summary.MaxDishCost.ToString("0.##") @_summary.Currency</dd></div>
+            <div><dt>Minimum daily budget</dt><dd>@_summary.MinDayBudget.ToString("0.##") @_summary.Currency</dd></div>
+        </dl>
+    }
+
+    <AuthorizeView>
+        <Authorized>
+            <a class="button primary" href="plans/new">Create a new plan</a>
+        </Authorized>
+        <NotAuthorized>
+            <a class="button primary" href="register">Get started</a>
+        </NotAuthorized>
+    </AuthorizeView>
+</div>
+
+@code {
+    private CatalogSummaryResponse? _summary;
+
+    protected override async Task OnInitializedAsync()
+    {
+        Result<CatalogSummaryResponse> result =
+            await Summary.Handle(new GetCatalogSummaryQuery(), CancellationToken.None);
+
+        if (result.IsSuccess)
+        {
+            _summary = result.Value;
+        }
+    }
+}

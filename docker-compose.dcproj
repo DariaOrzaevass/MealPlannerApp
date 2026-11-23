@@ -9,7 +9,7 @@
   <PropertyGroup>
     <DockerLaunchAction>LaunchBrowser</DockerLaunchAction>
     <DockerServiceName>mealplanner-web</DockerServiceName>
-    <DockerServiceUrl>http://localhost:5080/scalar</DockerServiceUrl>
+    <DockerServiceUrl>http://localhost:5080</DockerServiceUrl>
   </PropertyGroup>
   <ItemGroup>
     <None Include="docker-compose.override.yml">
@@ -17,5 +17,6 @@
     </None>
     <None Include="docker-compose.yml" />
     <None Include=".dockerignore" />
+    <None Include="src\MealPlanner.Web\Components\Layout\MainLayout.razor.css" />
   </ItemGroup>
 </Project>

@@ -52,6 +52,8 @@ app.UseAuthorization();
 
 app.UseAntiforgery();
 
+app.MapStaticAssets();
+
 app.MapEndpoints(app.MapGroup("api").RequireAuthorization());
 
 app.MapRazorComponents<App>()
