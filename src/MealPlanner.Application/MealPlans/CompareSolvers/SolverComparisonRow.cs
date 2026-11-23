@@ -16,4 +16,5 @@ public sealed record SolverComparisonRow(
     double DiversityIndex,
     long ElapsedMs,
     long ExploredNodes,
-    bool IsProvenOptimal);
+    bool IsProvenOptimal,
+    double LowerBound);

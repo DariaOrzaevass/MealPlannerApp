@@ -3,7 +3,7 @@ using MealPlanner.Planning.DataStructures;
 namespace MealPlanner.Planning.Tests;
 
 // Tests for IndexedBinaryHeap
-public sealed class IndexedBinaryHeapTests
+public sealed class IndexedDaryHeapTests
 {
     // Same test with different arity values (2 and 4)
     [Theory]
@@ -16,7 +16,7 @@ public sealed class IndexedBinaryHeapTests
 
         // Random number with fixed seed to reproduce the same failure if test fails
         var random = new Random(20261021);
-        var heap = new IndexedBinaryHeap<int>(Capacity, arity);
+        var heap = new IndexedDaryHeap<int>(Capacity, arity);
         var priority = new int?[Capacity];
 
         // 400 operation with checks if the heap is still valid after each
@@ -102,7 +102,7 @@ public sealed class IndexedBinaryHeapTests
     }
 
     // Verifies PopMin work
-    private static void PopMinAndCheck(IndexedBinaryHeap<int> heap, int?[] priority)
+    private static void PopMinAndCheck(IndexedDaryHeap<int> heap, int?[] priority)
     {
         int best = int.MaxValue;
 

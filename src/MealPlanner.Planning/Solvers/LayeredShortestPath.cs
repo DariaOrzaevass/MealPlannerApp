@@ -38,7 +38,7 @@ internal static class LayeredShortestPath
         Array.Fill(previous, -1);
 
         // Creates new Indexed Binary Heap
-        var heap = new IndexedBinaryHeap<double>(graph.NodeCount, heapArity);
+        var heap = new IndexedDaryHeap<double>(graph.NodeCount, heapArity);
 
         // Source has 0 distance - it is the beginning of the search
         distance[graph.Source] = 0;
@@ -95,7 +95,7 @@ internal static class LayeredShortestPath
         double[] distance,
         int[] previous,
         bool[] settled,
-        IndexedBinaryHeap<double> heap)
+        IndexedDaryHeap<double> heap)
     {
         // If the current node is the source - the beginning
         if (current == graph.Source)
@@ -147,7 +147,7 @@ internal static class LayeredShortestPath
         double[] distance,
         int[] previous,
         bool[] settled,
-        IndexedBinaryHeap<double> heap)
+        IndexedDaryHeap<double> heap)
     {
         // Negative weight or NaN break the rule
         // "removed from the heap - the cost is final"

@@ -32,7 +32,7 @@ public static class ShortestPaths
         Array.Fill(previous, -1);
 
         // The heap for all dishes
-        var heap = new IndexedBinaryHeap<double>(vertexCount);
+        var heap = new IndexedDaryHeap<double>(vertexCount);
 
         // We begin at the source (starting node)
         distance[source] = 0;
@@ -68,7 +68,7 @@ public static class ShortestPaths
     double[] distance,
     int[] previous,
     bool[] settled,
-    IndexedBinaryHeap<double> heap)
+    IndexedDaryHeap<double> heap)
     {
         // Negative weight or NaN break the rule
         // "removed from the heap - the cost is final"

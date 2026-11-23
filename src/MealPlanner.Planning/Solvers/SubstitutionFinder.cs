@@ -53,7 +53,7 @@ public sealed class SubstitutionFinder
         Array.Fill(distance, double.PositiveInfinity);
         Array.Fill(previous, -1);
 
-        var heap = new IndexedBinaryHeap<double>(graph.VertexCount, _heapArity);
+        var heap = new IndexedDaryHeap<double>(graph.VertexCount, _heapArity);
 
         distance[rejected] = 0;
         heap.Push(rejected, 0);

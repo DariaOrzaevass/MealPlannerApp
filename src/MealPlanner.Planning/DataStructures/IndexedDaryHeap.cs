@@ -4,8 +4,8 @@ using System.Text;
 
 namespace MealPlanner.Planning.DataStructures;
 
-// Class for the indexed binary heap. Is used in the Dijkstra's algorithm 
-public sealed class IndexedBinaryHeap<TPriority>
+// Class for the indexed d-ary heap. Previous name IndexedBinaryHeap. Is used in the Dijkstra's algorithm 
+public sealed class IndexedDaryHeap<TPriority>
     where TPriority : IComparable<TPriority>
 {
     // Represents the absene of the indentifier in the heap
@@ -26,7 +26,7 @@ public sealed class IndexedBinaryHeap<TPriority>
     private readonly TPriority?[] _priority;
 
     // Constructor of the indexed binary heap
-    public IndexedBinaryHeap(int capacity, int arity = 2)
+    public IndexedDaryHeap(int capacity, int arity = 2)
     {
         // Range cannot be negative or 0
         ArgumentOutOfRangeException.ThrowIfNegativeOrZero(capacity);

@@ -115,6 +115,45 @@ public class BranchAndBoundTests
         solution.Objective.Should().BeApproximately(bruteForceBest, 1e-9);
     }
 
+    // Checks that none of the solvers of the application prodices Path
+    // Objective value that is lower than the Dijkstra lower bound.
+    [Fact]
+    public void Solvers_Should_NotFallBelowDijkstraLowerBound_OnTinyProblem()
+    {
+        // Creates a small problem
+        PlanningProblem problem = PlanningProblem.Create(
+            RandomCatalog.Build(dishCount: 12, seed: 77, ingredientPool: 8),
+            PlanningSpec.Create(
+                budgetMinorUnits: 200_000,
+                durationDays: 3,
+                mealsPerDay: [MealKinds.Lunch, MealKinds.Dinner],
+                maxRepeats: 3,
+                minDaysBetweenRepeats: 1),
+            seed: 77);
+
+        // Calculates the shortest-path lower bound
+        var dijkstraSolver = new LayeredGraphDijkstraSolver();
+        double bound = dijkstraSolver.LowerBound(problem);
+
+        // Runs solvers
+        PlanSolution dijkstra = dijkstraSolver.Solve(problem);
+        PlanSolution greedy = new GreedySolver().Solve(problem);
+        PlanSolution branchAndBound = new BacktrackingSolver(
+            timeLimit: TimeSpan.FromSeconds(5), optimize: true).Solve(problem);
+
+        // if solvers found a solution
+        dijkstra.IsSolved.Should().BeTrue(dijkstra.FailureReason);
+        greedy.IsSolved.Should().BeTrue(greedy.FailureReason);
+        branchAndBound.IsSolved.Should().BeTrue(branchAndBound.FailureReason);
+
+        // Verifies that Dijkstra's solution has essentially the same objective as lower bound
+        PathObjective.Evaluate(problem, dijkstra.Assignment).Should().BeApproximately(bound, 1e-9);
+
+        // Checks that neither Greedy nor Branch and Bound obtain the objective that is better than the lower bound
+        PathObjective.Evaluate(problem, greedy.Assignment).Should().BeGreaterThanOrEqualTo(bound - 1e-9);
+        PathObjective.Evaluate(problem, branchAndBound.Assignment).Should().BeGreaterThanOrEqualTo(bound - 1e-9);
+    }
+
     // Checks that optimistic lower-bound estimate of the best possible
     // objective for every partial solution is never bigger than the
     // objective of any possible completion of this solution.

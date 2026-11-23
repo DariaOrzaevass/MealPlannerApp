@@ -19,7 +19,7 @@ internal sealed class OpenApiDocumentInfo : IOpenApiDocumentTransformer
                 "Generation of personalized meal plans. The problem is defined" +
                 "as a constrained optimization problem and is solved using" +
                 "4 different algorithms: the greedy algorithm, Dijkstra's" +
-                "algorithm, Backtracking, and Branch and Bound. The choice of" +
+                "algorithm, Backtracking, and Branch and Bound. The choice of " +
                 "algorithm is a parameter of the meal-plan generation request."
         };
 
