@@ -1,9 +1,11 @@
-﻿using System;
+using System;
 using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
+#pragma warning disable IDE0161 // Convert to file-scoped namespace
 namespace MealPlanner.Infrastructure.Database.Migrations.Identity
+#pragma warning restore IDE0161 // Convert to file-scoped namespace
 {
     /// <inheritdoc />
     public partial class InitialCreate : Migration

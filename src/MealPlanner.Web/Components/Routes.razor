@@ -1,0 +1,16 @@
+@* Routing that has authorization checks. AuthorizedRouteView instead of
+RouteView, because it checks the Authorize attribute on the page. If user
+doesn't have a permission <NotAuthorized> is displayed instead of the page *@
+<Router AppAssembly="typeof(Program).Assembly" NotFoundPage="typeof(Pages.NotFound)">
+    <Found Context="routeData">
+        <AuthorizeRouteView RouteData="routeData" DefaultLayout="typeof(Layout.MainLayout)">
+            <NotAuthorized>
+                <div class="card">
+                    <h1>Insufficient permissions</h1>
+                    <p>This page is only available to administrator.</p>
+                </div>
+            </NotAuthorized>
+        </AuthorizeRouteView>
+        <FocusOnNavigate RouteData="routeData" Selector="h1" />
+    </Found>
+</Router>

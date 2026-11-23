@@ -1,5 +1,6 @@
 using MealPlanner.Application;
 using MealPlanner.Infrastructure;
+using MealPlanner.Web.Components;
 using MealPlanner.Web.Endpoints;
 using MealPlanner.Web.Extensions;
 using Scalar.AspNetCore;
@@ -49,6 +50,11 @@ app.MapScalarApiReference(options => options
 app.UseAuthentication();
 app.UseAuthorization();
 
+app.UseAntiforgery();
+
 app.MapEndpoints(app.MapGroup("api").RequireAuthorization());
+
+app.MapRazorComponents<App>()
+    .AddInteractiveServerRenderMode();
 
 app.Run();

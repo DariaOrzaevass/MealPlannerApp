@@ -1,0 +1,41 @@
+@inherits LayoutComponentBase
+
+<header class="topbar">
+    <nav>
+        <a class="brand" href="">Meal Planner</a>
+
+        <AuthorizeView>
+            @* Menu items are visible only to authenticated users. Hiding a link
+            does not replace a server-side authorization checks. it merely prevents
+            the showing of buttons that would only lead to the denied access. *@
+            <Authorized>
+                <a href="plans/new">Create a new plan</a>
+                <a href="plans">My plans</a>
+
+                <AuthorizeView Roles="@Roles.Administrator" Context="admin">
+                    <a href="admin/dishes">Catalog</a>
+                </AuthorizeView>
+
+                <span class="spacer"></span>
+                <span class="muted">@context.User.Identity?.Name</span>
+                <a href="logout">Log Out</a>
+            </Authorized>
+
+            <NotAuthorized>
+                <span class="spacer"></span>
+                <a href="login">Log In</a>
+                <a href="register">Register</a>
+            </NotAuthorized>
+        </AuthorizeView>
+    </nav>
+</header>
+
+<main>
+    @Body
+</main>
+
+<div id="blazor-error-ui" data-nosnippet>
+    An unexpected error occured.
+    <a href="." class="reload">Reload</a>
+    <span class="dismiss">🗙</span>
+</div>
