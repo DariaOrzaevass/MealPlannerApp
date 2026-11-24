@@ -10,20 +10,20 @@ public sealed class PlanningSpec
 {
     // Private constructor so that the PlanningSpec can only be created using the Create method with validation
     private PlanningSpec(
-    int budgetMinorUnits,
-    int durationDays,
-    MealKinds[] mealsPerDay,
-    int dietLevel,
-    AllergenMask excludedAllergens,
-    int[] dislikedIngredients,
-    int maxRepeats,
-    int minDaysBetweenRepeats,
-    int minDailyCalories,
-    int maxDailyCalories,
-    int maxCookingTimeMinutes,
-    int[] preferredCuisines,
-    int[] excludedDishes,
-    int[] pinnedSlots,
+        int budgetMinorUnits,
+        int durationDays,
+        MealKinds[] mealsPerDay,
+        int dietLevel,
+        AllergenMask excludedAllergens,
+        int[] dislikedIngredients,
+        int maxRepeats,
+        int minDaysBetweenRepeats,
+        int minDailyCalories,
+        int maxDailyCalories,
+        int maxCookingTimeMinutes,
+        int[] preferredCuisines,
+        int[] excludedDishes,
+        int[] pinnedSlots,
     SlotDescriptor[] slots)
     {
         BudgetMinorUnits = budgetMinorUnits;
@@ -96,20 +96,20 @@ public sealed class PlanningSpec
 
     // Creates a PlanningSpec after validation
     public static PlanningSpec Create(
-    int budgetMinorUnits,
-    int durationDays,
-    IReadOnlyList<MealKinds> mealsPerDay,
-    int dietLevel = 0,
-    AllergenMask excludedAllergens = default,
-    IReadOnlyList<int>? dislikedIngredients = null,
-    int maxRepeats = int.MaxValue,
-    int minDaysBetweenRepeats = 0,
-    int minDailyCalories = 0,
-    int maxDailyCalories = int.MaxValue,
-    int maxCookingTimeMinutes = int.MaxValue,
-    IReadOnlyList<int>? preferredCuisines = null,
-    IReadOnlyList<int>? excludedDishes = null,
-    IReadOnlyDictionary<int, int>? pinnedSlots = null)
+        int budgetMinorUnits,
+        int durationDays,
+        IReadOnlyList<MealKinds> mealsPerDay,
+        int dietLevel = 0,
+        AllergenMask excludedAllergens = default,
+        IReadOnlyList<int>? dislikedIngredients = null,
+        int maxRepeats = int.MaxValue,
+        int minDaysBetweenRepeats = 0,
+        int minDailyCalories = 0,
+        int maxDailyCalories = int.MaxValue,
+        int maxCookingTimeMinutes = int.MaxValue,
+        IReadOnlyList<int>? preferredCuisines = null,
+        IReadOnlyList<int>? excludedDishes = null,
+        IReadOnlyDictionary<int, int>? pinnedSlots = null)
     {
         ArgumentOutOfRangeException.ThrowIfNegativeOrZero(budgetMinorUnits);
         ArgumentOutOfRangeException.ThrowIfNegativeOrZero(durationDays);

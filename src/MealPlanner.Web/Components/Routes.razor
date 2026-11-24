@@ -7,8 +7,8 @@ doesn't have a permission <NotAuthorized> is displayed instead of the page *@
             <NotAuthorized>
                 @if (context.User.Identity?.IsAuthenticated != true)
                 {
-                    @* If the user is not authenticated - redirect them to Log in
-                    and remember, where they were heading. *@
+                    @* If the user is not authenticated they are redirected
+                    to Log in and where they were heading is remembered. *@
                     <RedirectToLogin />
                 }
                 else

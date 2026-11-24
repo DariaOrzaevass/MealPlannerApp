@@ -4,7 +4,7 @@
 @inject SignInManager<IdentityUser> SignInManager
 @inject NavigationManager Navigation
 
-@* Loggin out also works with authentication cookie, so this page is static too
+@* Signing out also works with authentication cookie, so this page is static too
 and accepts a form submission using POST. Using a normal link instead of a
 form would not be correct, because following a link sends a GET request,
 and GET reques should not change the state of application. *@

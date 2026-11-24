@@ -7,7 +7,7 @@
 @inject UserManager<IdentityUser> UserManager
 @inject NavigationManager Navigation
 
-@* This page is not interactive (no @rendermode) intentionally. Logging in issues a cookie that is
+@* This page is not interactive (no @rendermode) intentionally. Signing in issues a cookie that is
 written to the HTTP response headers. On the interactive Blazor page the response was already sent, the
 page lives over a WebSocket connection, and HTTP context isn't available anymore when the button is clicked.
 SignInManager will throw an exception in such page. But static rendering brings us back to the normal form where

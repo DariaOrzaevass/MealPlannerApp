@@ -19,7 +19,7 @@ public sealed class SimilarityMetric
     private readonly double _cuisineWeight;
     private readonly double _calorieWeight;
 
-    // Table of similarities of all pairs. For 2048 its around
+    // Table of similarities of all pairs. For 2048 it is around
     // 2.1 million pairs - 16MB. It is created one time for a catalog
     private readonly float[]? _cache;
 

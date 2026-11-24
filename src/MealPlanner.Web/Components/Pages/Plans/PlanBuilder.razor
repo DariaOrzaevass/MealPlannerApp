@@ -1,12 +1,20 @@
 @page "/plans/new"
+@using MealPlanner.Application.Abstractions.Authentication
 @using MealPlanner.Application.Abstractions.Messaging
 @using MealPlanner.Application.Catalog.GetCatalogOptions
+@using MealPlanner.Application.MealPlans
+@using MealPlanner.Application.MealPlans.CompareSolvers
+@using MealPlanner.Application.MealPlans.GenerateMealPlan
 @using MealPlanner.Domain.Abstractions
 @using MealPlanner.Domain.MealPlans
 @using MealPlanner.Domain.Shared
 @attribute [Authorize]
 @rendermode InteractiveServer
+@inject IUserContext UserContext
 @inject IQueryHandler<GetCatalogOptionsQuery, CatalogOptionsResponse> Options
+@inject IQueryHandler<CompareSolversQuery, IReadOnlyCollection<SolverComparisonRow>> Compare
+@inject ICommandHandler<GenerateMealPlanCommand, GenerateMealPlanResponse> Generate
+@inject NavigationManager Navigation
 
 @* This page is interactive, here user ticks checkboxes and
 presses buttons and the result must apper without the reload. *@
@@ -143,11 +151,87 @@ presses buttons and the result must apper without the reload. *@
                 }
             </div>
         </details>
+
+        @if (_errors.Count > 0)
+        {
+            <div class="alert error">
+                <ul>
+                    @foreach (string message in _errors)
+                    {
+                        <li>@message</li>
+                    }
+                </ul>
+            </div>
+        }
+
+        <p class="actions">
+            <button class="primary" disabled="@_busy" @onclick="BuildAsync">Generate plan</button>
+            <button disabled="@_busy" @onclick="CompareAsync">Compare solvers</button>
+            @if (_busy)
+            {
+                <span class="muted">Calculating</span>
+            }
+        </p>
     }
 </div>
 
+@if (_comparison is not null)
+{
+    <div class="card">
+        <h2>Solver comparison</h2>
+        <p class="muted">
+            The same problem, four solvers. Nothing is saved.
+        </p>
+        @if (_comparison.Count > 0)
+        {
+            <p class="muted">
+                Lower bound (shortest path without the variety term):
+                @FormatLowerBound(_comparison.First().LowerBound)
+            </p>
+        }
+
+        <table>
+            <thead>
+                <tr>
+                    <th>Solver</th>
+                    <th class="number">Cost</th>
+                    <th class="number">Budget</th>
+                    <th class="number">Variety</th>
+                    <th class="number">Time</th>
+                    <th class="number">Nodes</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (SolverComparisonRow row in _comparison)
+                {
+                    <tr>
+                        <td>@row.Name</td>
+                        @if (row.Solved)
+                        {
+                            <td class="number">@row.TotalCost.ToString("0.##")</td>
+                            <td class="number">@row.BudgetUsage.ToString("P0")</td>
+                            <td class="number">@row.DiversityIndex.ToString("0.00")</td>
+                            <td class="number">@row.ElapsedMs ms</td>
+                            <td class="number">@(row.ExploredNodes == 0 ? "-" : row.ExploredNodes.ToString("N0"))</td>
+                        }
+                        else
+                        {
+                            <td colspan="3" class="muted">@row.Failure</td>
+                            <td class="number">@row.ElapsedMs ms</td>
+                            <td class="number">@(row.ExploredNodes == 0 ? "-" : row.ExploredNodes.ToString("N0"))</td>
+                        }
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+}
+
 @code {
     private CatalogOptionsResponse? _options;
+    private IReadOnlyCollection<SolverComparisonRow>? _comparison;
+    private readonly List<string> _errors = [];
+    private bool _busy;
 
     private string _name = "Week";
     private DateOnly _startDate = DateOnly.FromDateTime(DateTime.UtcNow);
@@ -188,6 +272,103 @@ presses buttons and the result must apper without the reload. *@
         else
         {
             set.Remove(value);
+        }
+    }
+
+    private PlanningConstraintsInput BuildConstraints() => new(
+        _budget,
+        Currency.Eur.Code,
+        _durationDays,
+        [.. _meals.Order()],
+        _diet,
+        [.. _allergens],
+        [.. _ingredients],
+        _maxRepeats,
+        _minGap,
+        _minCalories,
+        _maxCalories,
+        _maxCookingTime,
+        [.. _cuisines.Order()]);
+
+    private async Task BuildAsync()
+    {
+        _busy = true;
+        _errors.Clear();
+        _comparison = null;
+
+        try
+        {
+            Result<UserId> userId = await UserContext.GetUserIdAsync();
+
+            if (userId.IsFailure)
+            {
+                _errors.Add(userId.Error.Description);
+
+                return;
+            }
+
+            Result<GenerateMealPlanResponse> result = await Generate.Handle(
+                new GenerateMealPlanCommand(
+                    userId.Value, _name, _startDate, BuildConstraints(), _algorithm),
+                CancellationToken.None);
+
+            if (result.IsFailure)
+            {
+                Report(result.Error);
+
+                return;
+            }
+
+            Navigation.NavigateTo($"plans/{result.Value.MealPlanId}");
+        }
+        finally
+        {
+            _busy = false;
+        }
+    }
+
+    private async Task CompareAsync()
+    {
+        _busy = true;
+        _errors.Clear();
+
+        try
+        {
+            Result<IReadOnlyCollection<SolverComparisonRow>> result =
+                await Compare.Handle(
+                    new CompareSolversQuery(BuildConstraints()),
+                    CancellationToken.None);
+
+            if (result.IsFailure)
+            {
+                _comparison = null;
+                Report(result.Error);
+
+                return;
+            }
+
+            _comparison = result.Value;
+        }
+        finally
+        {
+            _busy = false;
+        }
+    }
+
+    private static string FormatLowerBound(double bound) =>
+    double.IsPositiveInfinity(bound) ? "no path" : bound.ToString("0.000");
+
+    private void Report(Error error)
+    {
+        // A validation error contans a list of errors,
+        // other error types contain only one
+        if (error is ValidationError validation)
+        {
+            _errors.AddRange(validation.Errors.Select(e => e.Description));
+        }
+        else
+        {
+            _errors.Add(error.Description);
         }
     }
 }

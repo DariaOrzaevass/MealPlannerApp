@@ -101,7 +101,7 @@ internal sealed class ReplaceDishCommandHandler(
         if (!substitution.Found)
         {
             return Result.Failure<ReplaceDishResponse>(
-                PlanningErrors.NoSubstitution(substitution.FailureReason ?? "причина неизвестна"));
+                PlanningErrors.NoSubstitution(substitution.FailureReason ?? "the reason is unknown"));
         }
 
         DishId oldDishId = entry.DishId;

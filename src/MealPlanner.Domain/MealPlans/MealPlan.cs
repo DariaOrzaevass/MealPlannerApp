@@ -45,7 +45,7 @@ public sealed class MealPlan : Entity<MealPlanId>
     {
     }
 
-    // Id of the user to whom the meal plan belongs to
+    // ID of the user to whom the meal plan belongs to
     public UserId UserId { get; private set; } = null!;
 
     // Name of the meal plan
@@ -63,16 +63,16 @@ public sealed class MealPlan : Entity<MealPlanId>
     // When the plan was created
     public DateTime CreatedOnUtc { get; private set; }
 
-    // For how long (in ms) the plan was generating. For the later comparison of the algorithms performance
+    // For how long (in ms) the plan was generating. Needed for the later comparison of the algorithms performance
     public long GenerationMs { get; private set; }
 
-    // The amount of explored nodes, needed for algorithms
+    // The amount of explored nodes that is needed for algorithms
     public long ExploredNodes { get; private set; }
 
     // Total cost of the meal plan
     public Money TotalCost { get; private set; } = null!;
 
-    // The read-only collection of entries(dishes) of the meal plan
+    // The read-only collection of entries (dishes) of the meal plan
     public IReadOnlyCollection<MealPlanEntry> Entries => _entries.AsReadOnly();
 
     // Creates a new meal plan and raises a domain event after checking the input

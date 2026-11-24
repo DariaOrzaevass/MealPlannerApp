@@ -253,7 +253,7 @@ internal sealed class SearchContext
     // feasible dish left. If not - the branch is pruned.
     public bool ForwardCheckPasses()
     {
-        // If ForwardChecking heuristic is dasabled, nothing happens
+        // If ForwardChecking heuristic is disabled, nothing happens
         if (!_heuristics.HasFlag(BacktrackingHeuristics.ForwardChecking))
         {
             return true;
@@ -278,7 +278,7 @@ internal sealed class SearchContext
         // Gets the current calories of the day
         int current = State.CaloriesOfDay(day);
 
-        // Calculate the minimum and maximum possible calories of remaining slots
+        // Calculates the minimum and maximum possible calories of remaining slots
         int minRest = 0;
         int maxRest = 0;
 
