@@ -1,7 +1,11 @@
 @page "/register"
 @using System.ComponentModel.DataAnnotations
+@using MealPlanner.Application.Abstractions.Messaging
+@using MealPlanner.Application.Users.RegisterUser
+@using MealPlanner.Domain.Abstractions
 @using Microsoft.AspNetCore.Identity
 @attribute [AllowAnonymous]
+@inject ICommandHandler<RegisterUserCommand, Guid> Handler
 @inject SignInManager<IdentityUser> SignInManager
 @inject UserManager<IdentityUser> UserManager
 @inject NavigationManager Navigation
@@ -14,10 +18,42 @@ user logged in immediately, and this writes an authentification cookie *@
 <div class="card narrow">
     <h1>Register</h1>
 
+    <EditForm Model="Input" method="post" OnValidSubmit="RegisterAsync" FormName="register">
+        <DataAnnotationsValidator />
+
+        @if (_errors.Count > 0)
+        {
+            <div class="alert error">
+                <ul>
+                    @foreach (string message in _errors)
+                    {
+                        <li>@message</li>
+                    }
+                </ul>
+            </div>
+        }
+
+        <label>
+            Email
+            <InputText @bind-Value="Input!.Email" autocomplete="username" />
+            <ValidationMessage For="() => Input!.Email" />
+        </label>
+
+        <label>
+            Password
+            <InputText @bind-Value="Input!.Password" type="password" autocomplete="new-password" />
+            <ValidationMessage For="() => Input!.Password" />
+            <span class="hint">At least 8 symbols, with both uppercase and lowercase letters and a digit.</span>
+        </label>
+
+        <button type="submit" class="primary">Register</button>
+    </EditForm>
+
     <p class="muted">Already have an account? <a href="login">Log in</a></p>
 </div>
 
 @code {
+    private readonly List<string> _errors = [];
 
     // Initialization in OnInitialized and not in the property declaration, because
     // when the form is submitted, Blazor assigns parsed form data to this property,
@@ -29,7 +65,39 @@ user logged in immediately, and this writes an authentification cookie *@
 
     private async Task RegisterAsync()
     {
-        
+        _errors.Clear();
+
+        // Uses the same handler as the HTTP endpoint. the page calls it directly,
+        // because the Application layer and UI run in the same process, so sending
+        // an HTTP request from the application back to itself would be weird
+        Result<Guid> result = await Handler.Handle(
+            new RegisterUserCommand(Input!.Email, Input!.Password),
+            CancellationToken.None);
+
+        if (result.IsFailure)
+        {
+            // A validation error contans a list of errors,
+            // other error types contain only one
+            if (result.Error is ValidationError validation)
+            {
+                _errors.AddRange(validation.Errors.Select(e => e.Description));
+            }
+            else
+            {
+                _errors.Add(result.Error.Description);
+            }
+
+            return;
+        }
+
+        IdentityUser? user = await UserManager.FindByEmailAsync(Input!.Email.Trim().ToLowerInvariant());
+
+        if (user is not null)
+        {
+            await SignInManager.SignInAsync(user, isPersistent: false);
+        }
+
+        Navigation.NavigateTo("");
     }
 
     private sealed class RegisterInput

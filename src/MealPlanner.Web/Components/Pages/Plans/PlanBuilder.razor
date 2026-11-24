@@ -1,0 +1,73 @@
+@page "/plans/new"
+@using MealPlanner.Application.Abstractions.Messaging
+@using MealPlanner.Application.Catalog.GetCatalogOptions
+@using MealPlanner.Domain.Abstractions
+@using MealPlanner.Domain.Shared
+@attribute [Authorize]
+@rendermode InteractiveServer
+@inject IQueryHandler<GetCatalogOptionsQuery, CatalogOptionsResponse> Options
+
+@* This page is interactive, here user ticks checkboxes and
+presses buttons and the result must apper without the reload. *@
+
+<PageTitle>Create a new plan</PageTitle>
+
+<div class="card">
+    <h1>Create a new plan</h1>
+
+    @if (_options is null)
+    {
+        <p class="muted">Loading reference data...</p>
+    }
+    else
+    {
+        <div class="grid-2">
+            <label>
+                Name
+                <input @bind="_name" />
+            </label>
+
+            <label>
+                Start Date
+                <input type="date" @bind="_startDate" />
+            </label>
+
+            <label>
+                Budget for the whole period, €
+                <input type="number" step="5" min="1" @bind="_budget" />
+            </label>
+
+            <label>
+                Duration in days
+                <input type="number" min="1" max="28" @bind="_durationDays" />
+            </label>
+
+            <label>
+                Diet
+                <select @bind="_diet">
+                </select>
+            </label>
+        </div>
+    }
+</div>
+
+@code {
+    private CatalogOptionsResponse? _options;
+
+    private string _name = "Week";
+    private DateOnly _startDate = DateOnly.FromDateTime(DateTime.UtcNow);
+    private decimal _budget = 20m;
+    private int _durationDays = 7;
+    private DietType _diet = DietType.Omnivore;
+
+    protected override async Task OnInitializedAsync()
+    {
+        Result<CatalogOptionsResponse> options =
+            await Options.Handle(new GetCatalogOptionsQuery(), CancellationToken.None);
+
+        if (options.IsSuccess)
+        {
+            _options = options.Value;
+        }
+    }
+}
