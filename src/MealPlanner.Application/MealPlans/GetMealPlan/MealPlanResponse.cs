@@ -11,7 +11,7 @@ public sealed record MealPlanResponse(
     Guid Id,
     string Name,
     DateOnly StartDate,
-    int DuratioDays,
+    int DurationDays,
     decimal TotalCost,
     decimal Budget,
     string Currency,

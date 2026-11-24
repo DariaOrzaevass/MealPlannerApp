@@ -71,8 +71,47 @@ h2 {
     margin-bottom: 1.25rem;
 }
 
+.card.narrow { max-width: 26rem; margin-inline: auto; }
+
 .muted {
     color: var(--muted);
+}
+
+.hint {
+    display: block;
+    color: var(--muted);
+    font-size: 0.85rem;
+}
+
+label {
+    display: block;
+    margin-bottom: 0.9rem;
+    font-weight: 500;
+}
+
+label.inline {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-weight: 400;
+}
+
+input, select {
+    display: block;
+    width: 100%;
+    box-sizing: border-box;
+    margin-top: 0.25rem;
+    padding: 0.45rem 0.6rem;
+    border: 1px solid var(--border);
+    border-radius: 5px;
+    font: inherit;
+    background: var(--surface);
+    color: inherit;
+}
+
+label.inline input[type=checkbox] {
+    width: auto;
+    margin: 0;
 }
 
 button, .button {
