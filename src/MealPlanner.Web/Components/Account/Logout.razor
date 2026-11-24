@@ -1,0 +1,30 @@
+@page "/logout"
+@using Microsoft.AspNetCore.Identity
+@attribute [AllowAnonymous]
+@inject SignInManager<IdentityUser> SignInManager
+@inject NavigationManager Navigation
+
+@* Loggin out also works with authentication cookie, so this page is static too
+and accepts a form submission using POST. Using a normal link instead of a
+form would not be correct, because following a link sends a GET request,
+and GET reques should not change the state of application. *@
+
+<PageTitle>Logout</PageTitle>
+
+<div class="card narrow">
+    <h1>Log out</h1>
+    <p>Click the button to end your session.</p>
+
+    <EditForm Model="this" method="post" OnValidSubmit="SignOutAsync" FormName="logout">
+        <button type="submit" class="primary">Log out</button>
+    </EditForm>
+</div>
+
+@code {
+    private async Task SignOutAsync()
+    {
+        await SignInManager.SignOutAsync();
+
+        Navigation.NavigateTo("", forceLoad: true);
+    }
+}

@@ -1,0 +1,44 @@
+@page "/register"
+@using System.ComponentModel.DataAnnotations
+@using Microsoft.AspNetCore.Identity
+@attribute [AllowAnonymous]
+@inject SignInManager<IdentityUser> SignInManager
+@inject UserManager<IdentityUser> UserManager
+@inject NavigationManager Navigation
+
+@* This page is also without the @rendermode. After the registration the
+user logged in immediately, and this writes an authentification cookie *@
+
+<PageTitle>Register</PageTitle>
+
+<div class="card narrow">
+    <h1>Register</h1>
+
+    <p class="muted">Already have an account? <a href="login">Log in</a></p>
+</div>
+
+@code {
+
+    // Initialization in OnInitialized and not in the property declaration, because
+    // when the form is submitted, Blazor assigns parsed form data to this property,
+    // and initial value could be overwritten (to null includingly if the form is empty)
+    [SupplyParameterFromForm]
+    private RegisterInput? Input { get; set; }
+
+    protected override void OnInitialized() => Input ??= new RegisterInput();
+
+    private async Task RegisterAsync()
+    {
+        
+    }
+
+    private sealed class RegisterInput
+    {
+        [Required(ErrorMessage = "Please enter your email address.")]
+        [EmailAddress(ErrorMessage = "The email address is invalid.")]
+        public string Email { get; set; } = string.Empty;
+
+        [Required(ErrorMessage = "Please enter your password.")]
+        public string Password { get; set; } = string.Empty;
+    }
+}

@@ -1,0 +1,13 @@
+@inject NavigationManager Navigation
+
+@code {
+    // The component with no markup, because it only does the redirection.
+    // A separate component is required, because the redirect is triggered from
+    // <NotAuthorized> markup block, and this code cannot be placed there directly
+    protected override void OnInitialized()
+    {
+        string returnUrl = Navigation.ToBaseRelativePath(Navigation.Uri);
+
+        Navigation.NavigateTo($"login?returnUrl={Uri.EscapeDataString(returnUrl)}", forceLoad: true);
+    }
+}

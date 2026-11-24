@@ -5,10 +5,19 @@ doesn't have a permission <NotAuthorized> is displayed instead of the page *@
     <Found Context="routeData">
         <AuthorizeRouteView RouteData="routeData" DefaultLayout="typeof(Layout.MainLayout)">
             <NotAuthorized>
-                <div class="card">
-                    <h1>Insufficient permissions</h1>
-                    <p>This page is only available to administrator.</p>
-                </div>
+                @if (context.User.Identity?.IsAuthenticated != true)
+                {
+                    @* If the user is not authenticated - redirect them to Log in
+                    and remember, where they were heading. *@
+                    <RedirectToLogin />
+                }
+                else
+                {
+                    <div class="card">
+                        <h1>Insufficient permissions</h1>
+                        <p>This page is only available to administrator.</p>
+                    </div>
+                }
             </NotAuthorized>
         </AuthorizeRouteView>
         <FocusOnNavigate RouteData="routeData" Selector="h1" />
