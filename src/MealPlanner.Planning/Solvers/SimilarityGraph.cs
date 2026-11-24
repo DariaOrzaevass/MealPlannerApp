@@ -7,7 +7,7 @@ using MealPlanner.Planning.Scoring;
 
 namespace MealPlanner.Planning.Solvers;
 
-// Similarity grahf where vertices represent dishes, edges connect similar enough dishes, and
+// Similarity graph where vertices represent dishes, edges connect similar enough dishes, and
 // edge represents distance between them. This graph is needed for when the user rejects a dish
 // and wants to replace it. The application then looks for the nearest valid alernative. Finding
 // nearest vertex in a graph with non-negative edge weight can be solved with Dijkstra's again.

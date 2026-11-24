@@ -62,13 +62,13 @@ public static class ShortestPaths
 
     // If the new path through the new dish is shorter - we remember it
     private static void Relax(
-    int from,
-    int to,
-    double weight,
-    double[] distance,
-    int[] previous,
-    bool[] settled,
-    IndexedDaryHeap<double> heap)
+        int from,
+        int to,
+        double weight,
+        double[] distance,
+        int[] previous,
+        bool[] settled,
+        IndexedDaryHeap<double> heap)
     {
         // Negative weight or NaN break the rule
         // "removed from the heap - the cost is final"

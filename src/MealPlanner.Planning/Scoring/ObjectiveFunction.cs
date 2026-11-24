@@ -6,7 +6,7 @@ using MealPlanner.Planning.Models;
 namespace MealPlanner.Planning.Scoring;
 
 // Calculates an objective function for a complete meal plan.
-// Gives a way to compare them and algorithms used to make them
+// Gives a way to compare meal plans and algorithms used to make them
 public static class ObjectiveFunction
 {
     // Evaluates an objective function for the finished assignment of dishes to slots
@@ -84,7 +84,7 @@ public static class ObjectiveFunction
 
     // The lack of variety from 0 to 1
     private static double VarietyTerm(ReadOnlySpan<int> assignment) =>
-    1.0 - ((double)CountDistinct(assignment) / assignment.Length);
+        1.0 - ((double)CountDistinct(assignment) / assignment.Length);
 
     // How many different dishes are in the assignment.
     // Does not allocate memory like other methods could
