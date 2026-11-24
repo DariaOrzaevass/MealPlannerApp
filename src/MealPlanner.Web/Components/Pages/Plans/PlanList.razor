@@ -1,0 +1,169 @@
+@page "/plans"
+@using MealPlanner.Application.Abstractions.Authentication
+@using MealPlanner.Application.Abstractions.Messaging
+@using MealPlanner.Application.MealPlans.DeleteMealPlan
+@using MealPlanner.Application.MealPlans.GetMealPlans
+@using MealPlanner.Domain.Abstractions
+@attribute [Authorize]
+@rendermode InteractiveServer
+@inject IUserContext UserContext
+@inject IQueryHandler<GetMealPlansQuery, IReadOnlyCollection<MealPlanSummaryResponse>> Plans
+@inject ICommandHandler<DeleteMealPlanCommand> Delete
+
+@* The page is interactive because of the plan deletion. *@
+
+<PageTitle>My plans</PageTitle>
+
+<div class="card">
+    <h1>My plans</h1>
+
+    @if (_error is not null)
+    {
+        <p class="alert error">@_error</p>
+    }
+
+    @if (_deleted is not null)
+    {
+        <p class="alert info">Plan «@_deleted» was deleted.</p>
+    }
+
+    @if (_plans is null)
+    {
+        <p class="muted">Loading...</p>
+    }
+    else if (_plans.Count == 0)
+    {
+        <p class="muted">There are no plans yet.</p>
+        <a class="button primary" href="plans/new">Create your first plan</a>
+    }
+    else
+    {
+        <table>
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Start date</th>
+                    <th class="number">Days</th>
+                    <th class="number">Cost</th>
+                    <th class="number">Budget</th>
+                    <th>Solver</th>
+                    <th class="number">Time</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (MealPlanSummaryResponse plan in _plans)
+                {
+                    <tr>
+                        <td><a href="@($"plans/{plan.Id}")">@plan.Name</a></td>
+                        <td>@plan.StartDate.ToString("dd.MM.yyyy")</td>
+                        <td class="number">@plan.DurationDays</td>
+                        <td class="number">@plan.TotalCost.ToString("0.##")</td>
+                        <td class="number">@plan.Budget.ToString("0.##")</td>
+                        <td>@Names.Of(plan.Algorithm)</td>
+                        <td class="number">@plan.GenerationMs ms</td>
+                        <td class="row-actions">
+                            @if (_confirming == plan.Id)
+                            {
+                                @* Confirmation is the part of the table row,
+                                because using browser dialog cannot be styled,
+                                is difficult to test, and also blocks the page. *@
+                                <span class="muted">Delete?</span>
+                                <button class="danger" disabled="@_busy"
+                                        @onclick="() => DeleteAsync(plan)">
+                                    Yes
+                                </button>
+                                <button disabled="@_busy"
+                                        @onclick="() => _confirming = null">
+                                    No
+                                </button>
+                            }
+                            else
+                            {
+                                <button disabled="@_busy"
+                                        @onclick="() => _confirming = plan.Id">
+                                    Delete
+                                </button>
+                            }
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+
+        <p><a class="button primary" href="plans/new">Create another plan</a></p>
+    }
+</div>
+
+@code {
+    private IReadOnlyCollection<MealPlanSummaryResponse>? _plans;
+    private string? _error;
+    private string? _deleted;
+    private bool _busy;
+
+    // The plan for which "Delete" was clicked and confirmation is pending.
+    // The state is stored in one place and not a flag for every row,
+    // because confirmation can be active for 1 plan at a time.
+    private Guid? _confirming;
+
+    protected override async Task OnInitializedAsync() => await LoadAsync();
+
+    private async Task LoadAsync()
+    {
+        Result<UserId> userId = await UserContext.GetUserIdAsync();
+
+        if (userId.IsFailure)
+        {
+            _error = userId.Error.Description;
+            _plans = [];
+
+            return;
+        }
+
+        Result<IReadOnlyCollection<MealPlanSummaryResponse>> result =
+            await Plans.Handle(new GetMealPlansQuery(userId.Value), CancellationToken.None);
+
+        _plans = result.IsSuccess ? result.Value : [];
+    }
+
+    private async Task DeleteAsync(MealPlanSummaryResponse plan)
+    {
+        _busy = true;
+        _error = null;
+        _deleted = null;
+
+        try
+        {
+            Result<UserId> userId = await UserContext.GetUserIdAsync();
+
+            if (userId.IsFailure)
+            {
+                _error = userId.Error.Description;
+
+                return;
+            }
+
+            Result result = await Delete.Handle(
+                new DeleteMealPlanCommand(userId.Value, plan.Id),
+                CancellationToken.None);
+
+            if (result.IsFailure)
+            {
+                _error = result.Error.Description;
+
+                return;
+            }
+
+            _deleted = plan.Name;
+
+            await LoadAsync();
+        }
+        finally
+        {
+            // Confirmation state is removed in any case - successful deletion
+            // or not. Otherwise "Yes" button could stay visible for a deleted row. 
+            _confirming = null;
+            _busy = false;
+        }
+    }
+}
