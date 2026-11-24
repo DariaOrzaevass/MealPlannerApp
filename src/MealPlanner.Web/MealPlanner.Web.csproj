@@ -24,7 +24,6 @@
     <ProjectReference Include="..\MealPlanner.Infrastructure\MealPlanner.Infrastructure.csproj" />
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="Components\Account\" />
     <Folder Include="Components\Layout\" />
   </ItemGroup>
 </Project>

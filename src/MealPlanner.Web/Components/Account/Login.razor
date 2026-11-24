@@ -1,0 +1,113 @@
+@page "/login"
+@using System.ComponentModel.DataAnnotations
+@using MealPlanner.Application.Users
+@using Microsoft.AspNetCore.Identity
+@attribute [AllowAnonymous]
+@inject SignInManager<IdentityUser> SignInManager
+@inject UserManager<IdentityUser> UserManager
+@inject NavigationManager Navigation
+
+@* This page is not interactive (no @rendermode) intentionally. Logging in issues a cookie that is
+written to the HTTP response headers. On the interactive Blazor page the response was already sent, the
+page lives over a WebSocket connection, and HTTP context isn't available anymore when the button is clicked.
+SignInManager will throw an exception in such page. But static rendering brings us back to the normal form where
+browser sends POST request, server processes it as a real request, writes the cookie, and responds with a redirect. *@
+
+<PageTitle>Log in</PageTitle>
+
+<div class="card narrow">
+    <h1>Log in</h1>
+
+    <EditForm Model="Input" method="post" OnValidSubmit="SignInAsync" FormName="login">
+        <DataAnnotationsValidator />
+
+        @if (!string.IsNullOrEmpty(_error))
+        {
+            <p class="alert error">@_error</p>
+        }
+
+        <label>
+            Email
+            <InputText @bind-Value="Input!.Email" autocomplete="username" />
+            <ValidationMessage For="() => Input!.Email" />
+        </label>
+
+        <label>
+            Password
+            <InputText @bind-Value="Input!.Password" type="password" autocomplete="current-password" />
+            <ValidationMessage For="() => Input!.Password" />
+        </label>
+
+        <label class="inline">
+            <InputCheckbox @bind-Value="Input!.RememberMe" />
+            Remember me
+        </label>
+
+        <button type="submit" class="primary">Log in</button>
+    </EditForm>
+
+    <p class="muted">Do not have an account yet? <a href="register">Register</a></p>
+</div>
+
+@code {
+    private string? _error;
+
+    // Initialization in OnInitialized and not in the property declaration, because
+    // when the form is submitted, Blazor assigns parsed form data to this property,
+    // and initial value could be overwritten (to null includingly if the form is empty)
+    [SupplyParameterFromForm]
+    private LoginInput? Input { get; set; }
+
+    protected override void OnInitialized() => Input ??= new LoginInput();
+
+    [SupplyParameterFromQuery]
+    private string? ReturnUrl { get; set; }
+
+    private async Task SignInAsync()
+    {
+        IdentityUser? user = await UserManager.FindByEmailAsync(Input!.Email);
+
+        if (user is null)
+        {
+            _error = AuthenticationErrors.InvalidCredentials.Description;
+
+            return;
+        }
+
+        SignInResult result = await SignInManager.PasswordSignInAsync(
+            user,
+            Input!.Password,
+            Input!.RememberMe,
+            lockoutOnFailure: true);
+
+        if (result.IsLockedOut)
+        {
+            _error = "Too many failed attempts. Please try again later.";
+
+            return;
+        }
+
+        if (!result.Succeeded)
+        {
+            // Same message for "user does not exist" and "incorrect password"
+            // to not to allow the discovery of registered addresses
+            _error = AuthenticationErrors.InvalidCredentials.Description;
+
+            return;
+        }
+
+        Navigation.NavigateTo(string.IsNullOrEmpty(ReturnUrl) ? "" : ReturnUrl);
+    }
+
+    private sealed class LoginInput
+    {
+        [Required(ErrorMessage = "Please enter your email address.")]
+        [EmailAddress(ErrorMessage = "The email address is invalid.")]
+        public string Email { get; set; } = string.Empty;
+
+        [Required(ErrorMessage = "Please enter your password.")]
+        public string Password { get; set; } = string.Empty;
+
+        public bool RememberMe { get; set; }
+    }
+}
