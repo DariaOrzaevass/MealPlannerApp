@@ -20,16 +20,16 @@ public sealed class CandidateDomains
 
     private readonly bool[] _pinnedFeasible;
 
-    // Private so CandidateDomains can only be built inside the class
+    // Private, so CandidateDomains can only be built inside the class
     private CandidateDomains(
-    int[]?[] byKind,
-    int[] minCostByKind,
-    double[] averageCostByKind,
-    int[] minCaloriesByKind,
-    int[] maxCaloriesByKind,
-    int[] pinnedDish,
-    bool[] pinnedFeasible,
-    DomainBuildStats stats)
+        int[]?[] byKind,
+        int[] minCostByKind,
+        double[] averageCostByKind,
+        int[] minCaloriesByKind,
+        int[] maxCaloriesByKind,
+        int[] pinnedDish,
+        bool[] pinnedFeasible,
+        DomainBuildStats stats)
     {
         _pinnedDish = pinnedDish;
         _pinnedFeasible = pinnedFeasible;

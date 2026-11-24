@@ -2,6 +2,7 @@
 @using MealPlanner.Application.Abstractions.Messaging
 @using MealPlanner.Application.Catalog.GetCatalogOptions
 @using MealPlanner.Domain.Abstractions
+@using MealPlanner.Domain.MealPlans
 @using MealPlanner.Domain.Shared
 @attribute [Authorize]
 @rendermode InteractiveServer
@@ -45,9 +46,103 @@ presses buttons and the result must apper without the reload. *@
             <label>
                 Diet
                 <select @bind="_diet">
+                    @foreach (DietType diet in Enum.GetValues<DietType>())
+                    {
+                        <option value="@diet">@Names.Of(diet)</option>
+                    }
                 </select>
             </label>
+
+            <label>
+                Planning algorithm
+                <select @bind="_algorithm">
+                    @foreach (PlannerAlgorithm algorithm in Enum.GetValues<PlannerAlgorithm>())
+                    {
+                        <option value="@algorithm">@Names.Of(algorithm)</option>
+                    }
+                </select>
+            </label>
+
+            <label>
+                Maximum number of dish repetitions
+                <input type="number" min="1" @bind="_maxRepeats" />
+            </label>
+
+            <label>
+                Minimum number of days between repetitions
+                <input type="number" min="0" @bind="_minGap" />
+            </label>
+
+            <label>
+                Minimum daily calories
+                <input type="number" min="0" placeholder="no limit" @bind="_minCalories" />
+            </label>
+
+            <label>
+                Maximum daily calories
+                <input type="number" min="0" placeholder="no limit" @bind="_maxCalories" />
+            </label>
+
+            <label>
+                Maximum cooking time in minutes
+                <input type="number" min="1" placeholder="no limit" @bind="_maxCookingTime" />
+            </label>
         </div>
+
+        <h2>Meals</h2>
+        <div class="checks">
+            @foreach (MealType meal in Enum.GetValues<MealType>())
+            {
+                <label class="inline">
+                    <input type="checkbox"
+                           checked="@_meals.Contains(meal)"
+                           @onchange="e => Toggle(_meals, meal, e)" />
+                    @Names.Of(meal)
+                </label>
+            }
+        </div>
+
+        <h2>Exclude allergens</h2>
+        <div class="checks">
+            @foreach (AllergenOption allergen in _options.Allergens)
+            {
+                <label class="inline">
+                    <input type="checkbox"
+                           checked="@_allergens.Contains(allergen.Id)"
+                           @onchange="e => Toggle(_allergens, allergen.Id, e)" />
+                    @allergen.Name
+                </label>
+            }
+        </div>
+
+        <h2>Preffered cuisines</h2>
+        <div class="checks">
+            @foreach (Cuisine cuisine in Enum.GetValues<Cuisine>())
+            {
+                <label class="inline">
+                    <input type="checkbox"
+                           checked="@_cuisines.Contains(cuisine)"
+                           @onchange="e => Toggle(_cuisines, cuisine, e)" />
+                    @Names.Of(cuisine)
+                </label>
+            }
+        </div>
+
+        <h2>Disliked ingredients</h2>
+        <details>
+            <summary class="muted">Selected: @_ingredients.Count from @_options.Ingredients.Count</summary>
+            <div class="checks">
+                @foreach (IngredientOption ingredient in _options.Ingredients)
+                {
+                    <label class="inline">
+                        <input type="checkbox"
+                               checked="@_ingredients.Contains(ingredient.Id)"
+                               @onchange="e => Toggle(_ingredients, ingredient.Id, e)" />
+                        @ingredient.Name
+                    </label>
+                }
+            </div>
+        </details>
     }
 </div>
 
@@ -59,6 +154,19 @@ presses buttons and the result must apper without the reload. *@
     private decimal _budget = 20m;
     private int _durationDays = 7;
     private DietType _diet = DietType.Omnivore;
+    private PlannerAlgorithm _algorithm = PlannerAlgorithm.Backtracking;
+    private int _maxRepeats = 3;
+    private int _minGap = 1;
+    private int? _minCalories;
+    private int? _maxCalories;
+    private int? _maxCookingTime;
+
+    private readonly HashSet<MealType> _meals =
+        [MealType.Breakfast, MealType.Lunch, MealType.Dinner];
+
+    private readonly HashSet<Guid> _allergens = [];
+    private readonly HashSet<Guid> _ingredients = [];
+    private readonly HashSet<Cuisine> _cuisines = [];
 
     protected override async Task OnInitializedAsync()
     {
@@ -68,6 +176,18 @@ presses buttons and the result must apper without the reload. *@
         if (options.IsSuccess)
         {
             _options = options.Value;
+        }
+    }
+
+    private static void Toggle<T>(HashSet<T> set, T value, ChangeEventArgs e)
+    {
+        if (e.Value is true)
+        {
+            set.Add(value);
+        }
+        else
+        {
+            set.Remove(value);
         }
     }
 }
