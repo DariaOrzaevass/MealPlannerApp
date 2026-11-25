@@ -19,7 +19,7 @@ to the Domain and Planning layers.
 - `MealPlanner.Application` depends on `MealPlanner.Domain` and `MealPlanner.Planning`
 
 `MealPlanner.Domain` stores all the Entities of the application like Dish, MealPlan, Ingrediet, and etc.
-`MealPlanner.Planning` stores the algorithms and does not know anything about layers above: infrastructure and Web
+`MealPlanner.Planning` stores the algorithms and does not know anything about layers above: Infrastructure and Web
 
 ## Details of installation requirements
 
@@ -28,8 +28,7 @@ Need:
 - .NET SDK 10
 - Docker to run the application fully
 
-SA password for MSSQL is not kept in the repo. Copy `.env.example` into `.env` and set the `MSSQL_SA_PASSWORD`.
-It is needed for the container. Application does not connect using `sa` - the login will be made later.
+SA password for MSSQL is not kept in the repo. Copy `.env.example` into `.env` and set the `MSSQL_SA_PASSWORD`. It is needed for the container.
 
 ## How to start
 
@@ -49,7 +48,9 @@ Current tests:
 
 - CandidateDomainsTests
 - DishIndex against a simple scan
-- IndexedBinaryHeapTests
+- IndexedDaryHeapTests
 - ShortestPathsTests against Bellman-Ford
 - BacktrackingSolverTests
 - GreedySolverTests
+- BranchAndBoundTests
+- LayeredGraphSolverTests

@@ -3,6 +3,7 @@
 @using MealPlanner.Application.Catalog.GetCatalogOptions
 @using MealPlanner.Application.Dishes.CreateDish
 @using MealPlanner.Application.Dishes.GetDishes
+@using MealPlanner.Application.Dishes.SetDishPublication
 @using MealPlanner.Domain.Abstractions
 @using MealPlanner.Domain.Shared
 @attribute [Authorize(Policy = Policies.Administrator)]
@@ -10,6 +11,10 @@
 @inject IQueryHandler<GetDishesQuery, DishPageResponse> Dishes
 @inject IQueryHandler<GetCatalogOptionsQuery, CatalogOptionsResponse> Options
 @inject ICommandHandler<CreateDishCommand, Guid> Create
+@inject ICommandHandler<SetDishPublicationCommand> SetPublication
+
+@* The authorization policy instead of specifying role directly in attribute -
+the page states WHAT is required instead of WHO is allowed to acces this page *@
 
 <PageTitle>Dish Catalog</PageTitle>
 
@@ -92,7 +97,7 @@
             }
         </div>
 
-        <h2>ingredients</h2>
+        <h2>Ingredients</h2>
         <p class="muted">
             A dish cannot be published without ingredients, because in this case its allergen
             set will be empty. A dish like that will incorrectly pass all allergen filters.
@@ -126,6 +131,10 @@
     }
     else
     {
+        <p class="muted">
+            Showing @_page.Items.Count from @_page.TotalCount,
+            page @_page.Page of @(Math.Max(1, (_page.TotalCount + _page.PageSize - 1) / _page.PageSize))
+        </p>
         <table>
             <thead>
                 <tr>
@@ -136,6 +145,7 @@
                     <th>Diet</th>
                     <th>Cuisine</th>
                     <th class="number">Ingredients</th>
+                    <th>Publication</th>
                 </tr>
             </thead>
             <tbody>
@@ -149,6 +159,12 @@
                         <td>@Names.Of(dish.Diet)</td>
                         <td>@Names.Of(dish.Cuisine)</td>
                         <td class="number">@dish.IngredientCount</td>
+                        <td>
+                            <button disabled="@_busy"
+                                    @onclick="() => TogglePublicationAsync(dish)">
+                                @(dish.IsPublished ? "Unpublish" : "Publish")
+                            </button>
+                        </td>
                     </tr>
                 }
             </tbody>
@@ -264,6 +280,37 @@
             _newIngredients.Clear();
 
             await LoadAsync(1);
+        }
+        finally
+        {
+            _busy = false;
+        }
+    }
+
+    private async Task TogglePublicationAsync(DishListItemResponse dish)
+    {
+        _busy = true;
+        _errors.Clear();
+        _message = null;
+
+        try
+        {
+            Result result = await SetPublication.Handle(
+                new SetDishPublicationCommand(dish.Id, !dish.IsPublished),
+                CancellationToken.None);
+
+            if (result.IsFailure)
+            {
+                Report(result.Error);
+
+                return;
+            }
+
+            _message = dish.IsPublished
+                ? $"«{dish.Name}» was unpublished. The catalog snapshot is invalidated."
+                : $"«{dish.Name}» was published. The catalog snapshot is invalidated.";
+
+            await LoadAsync(_page?.Page ?? 1);
         }
         finally
         {
