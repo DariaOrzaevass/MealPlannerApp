@@ -18,6 +18,7 @@
     <None Include="docker-compose.yml" />
     <None Include=".dockerignore" />
     <None Include="src\MealPlanner.Web\Components\Layout\MainLayout.razor.css" />
+    <None Include="src\MealPlanner.Web\Components\Layout\ReconnectModal.razor.css" />
     <None Include="src\MealPlanner.Web\Components\Layout\ReconnectModal.razor.js" />
   </ItemGroup>
 </Project>

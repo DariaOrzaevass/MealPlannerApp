@@ -298,5 +298,5 @@ internal sealed class SearchState
     // the cheapest dishes will not fit in the budget then the expensive
     // option should not be chosen now
     public int MinCostOfRemainingAfter(SlotDescriptor slot) =>
-    _remainingMinCost - _problem.Domains.MinCostForKind(slot.Kind);
+        _remainingMinCost - _problem.Domains.MinCostForKind(slot.Kind);
 }

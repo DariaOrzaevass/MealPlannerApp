@@ -453,7 +453,7 @@ internal sealed class SearchContext
                 int dish = domain[i];
 
                 scores[i] = (problem.Weights.Cost
-                        * (1.0 - ((double)problem.Catalog.CostMinorUnits[dish] / maxCost)))
+                    * (1.0 - ((double)problem.Catalog.CostMinorUnits[dish] / maxCost)))
                     + (problem.Weights.Preference * (1.0 - problem.PreferencePenalty(dish)));
             }
 

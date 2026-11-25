@@ -142,9 +142,9 @@ internal sealed class LayeredGraph
 
     // Turns the price of the dish to cost penalty
     private double CostTerm(int dish) =>
-    (_problem.Weights.Cost)
-    * _problem.Catalog.CostMinorUnits[dish]
-    / _problem.Spec.BudgetMinorUnits;
+        (_problem.Weights.Cost)
+        * _problem.Catalog.CostMinorUnits[dish]
+        / _problem.Spec.BudgetMinorUnits;
 
     // Defines the penalty of not using the cuisine preffered by user
     private double PreferenceTerm(int dish) =>

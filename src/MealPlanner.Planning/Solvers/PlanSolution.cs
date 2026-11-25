@@ -82,8 +82,8 @@ public sealed class PlanSolution
 
     // Creates infeasible solution result
     public static PlanSolution Infeasible(string reason, long exploredNodes, long elapsedTicks) =>
-    new(PlanningStatus.Infeasible, [], 0, double.PositiveInfinity,
-        exploredNodes, elapsedTicks, reason, isProvenOptimal: false);
+        new(PlanningStatus.Infeasible, [], 0, double.PositiveInfinity,
+            exploredNodes, elapsedTicks, reason, isProvenOptimal: false);
 
     // Creates an exhausted solution result
     public static PlanSolution Exhausted(string reason, long exploredNodes, long elapsedTicks) =>

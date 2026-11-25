@@ -128,5 +128,5 @@ public static class ConstraintValidator
 
     // The plan is feasible only when no constraints were violated
     public static bool IsFeasible(PlanningProblem problem, ReadOnlySpan<int> assignment) =>
-    Validate(problem, assignment) == ConstraintViolation.None;
+        Validate(problem, assignment) == ConstraintViolation.None;
 }
