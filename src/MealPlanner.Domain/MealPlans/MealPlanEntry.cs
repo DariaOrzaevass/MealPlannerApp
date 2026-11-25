@@ -12,12 +12,12 @@ public sealed class MealPlanEntry : Entity<MealPlanEntryId>
 {
     // Constructor to create a new MealPlanEntry
     internal MealPlanEntry(
-    MealPlanEntryId id,
-    MealPlanId mealPlanId,
-    int dayNumber,
-    MealType mealType,
-    DishId dishId,
-    Money cost)
+        MealPlanEntryId id,
+        MealPlanId mealPlanId,
+        int dayNumber,
+        MealType mealType,
+        DishId dishId,
+        Money cost)
     : base(id)
     {
         MealPlanId = mealPlanId;

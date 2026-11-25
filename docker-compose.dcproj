@@ -7,7 +7,7 @@
     <DockerComposeProjectName>mealplanner</DockerComposeProjectName>
   </PropertyGroup>
   <PropertyGroup>
-    <DockerLaunchAction>None</DockerLaunchAction>
+    <DockerLaunchAction>LaunchBrowser</DockerLaunchAction>
     <DockerServiceName>mealplanner-web</DockerServiceName>
     <DockerServiceUrl>http://localhost:5080</DockerServiceUrl>
   </PropertyGroup>

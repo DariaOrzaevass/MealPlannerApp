@@ -240,7 +240,7 @@ public sealed class MealPlan : Entity<MealPlanId>
     }
 
     public double DiversityIndex() =>
-    _entries.Count == 0
+        _entries.Count == 0
         ? 0
         : (double)_entries.Select(e => e.DishId).Distinct().Count() / _entries.Count;
 

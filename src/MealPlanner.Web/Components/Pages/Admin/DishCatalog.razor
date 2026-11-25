@@ -1,21 +1,55 @@
 @page "/admin/dishes"
 @using MealPlanner.Application.Abstractions.Messaging
 @using MealPlanner.Application.Catalog.GetCatalogOptions
+@using MealPlanner.Application.Dishes.CreateDish
 @using MealPlanner.Application.Dishes.GetDishes
 @using MealPlanner.Domain.Abstractions
+@using MealPlanner.Domain.Shared
 @attribute [Authorize(Policy = Policies.Administrator)]
 @rendermode InteractiveServer
 @inject IQueryHandler<GetDishesQuery, DishPageResponse> Dishes
 @inject IQueryHandler<GetCatalogOptionsQuery, CatalogOptionsResponse> Options
+@inject ICommandHandler<CreateDishCommand, Guid> Create
 
 <PageTitle>Dish Catalog</PageTitle>
 
 <div class="card">
     <h1>Dish Catalog</h1>
-    <label class="inline">
-        <input type="checkbox" @bind="_publishedOnly" />
-        Only show published dishes
-    </label>
+
+    <div class="actions">
+        <input placeholder="Search by name" @bind="_search" @bind:event="oninput" />
+        <label class="inline">
+            <input type="checkbox" @bind="_publishedOnly" />
+            Published dishes
+        </label>
+        <button @onclick="() => LoadAsync(1)">Search</button>
+    </div>
+
+    @if (_message is not null)
+    {
+        <p class="alert info">@_message</p>
+    }
+
+    @if (_errors.Count > 0)
+    {
+        <div class="alert error">
+            <ul>
+                @foreach (string error in _errors)
+                {
+                    <li>@error</li>
+                }
+            </ul>
+        </div>
+    }
+</div>
+
+<div class="card">
+    <h2>New dish</h2>
+
+    <p class="actions">
+        <button class="primary" disabled="@_busy" @onclick="CreateAsync">Create</button>
+        <span class="muted">The dish is created as unpublished.</span>
+    </p>
 </div>
 
 <div class="card">
@@ -52,15 +86,37 @@
                 }
             </tbody>
         </table>
+
+        <p class="actions">
+            <button disabled="@(_page.Page <= 1 || _busy)" @onclick="() => LoadAsync(_page.Page - 1)">Previous</button>
+            <button disabled="@(_page.Page * _page.PageSize >= _page.TotalCount || _busy)"
+                    @onclick="() => LoadAsync(_page.Page + 1)">
+                Next
+            </button>
+        </p>
     }
 </div>
 
 @code {
     private DishPageResponse? _page;
     private CatalogOptionsResponse? _options;
+    private readonly List<string> _errors = [];
+    private string? _message;
+    private bool _busy;
 
     private string _search = string.Empty;
     private bool _publishedOnly;
+
+    private string _newName = string.Empty;
+    private string _newDescription = string.Empty;
+    private string _newRecipe = string.Empty;
+    private decimal _newCost = 100m;
+    private int _newCalories = 400;
+    private int _newCookingTime = 20;
+    private DietType _newDiet = DietType.Omnivore;
+    private Cuisine _newCuisine = Cuisine.Other;
+    private MealTypes _newSuitableFor = MealTypes.Lunch | MealTypes.Dinner;
+    private readonly Dictionary<Guid, decimal> _newIngredients = [];
 
     protected override async Task OnInitializedAsync()
     {
@@ -84,6 +140,60 @@
         if (result.IsSuccess)
         {
             _page = result.Value;
+        }
+    }
+
+    private async Task CreateAsync()
+    {
+        _busy = true;
+        _errors.Clear();
+        _message = null;
+
+        try
+        {
+            var command = new CreateDishCommand(
+                _newName,
+                _newDescription,
+                _newRecipe,
+                _newCost,
+                Currency.Eur.Code,
+                _newCalories,
+                _newSuitableFor,
+                _newCookingTime,
+                _newDiet,
+                _newCuisine,
+                [.. _newIngredients.Select(i => new DishIngredientInput(i.Key, i.Value, MeasurementUnit.Gram))]);
+
+            Result<Guid> result = await Create.Handle(command, CancellationToken.None);
+
+            if (result.IsFailure)
+            {
+                Report(result.Error);
+
+                return;
+            }
+
+            _message = $"Dish «{_newName}» was created. Publish it so it can be used for the meal plan generation.";
+            _newName = string.Empty;
+            _newIngredients.Clear();
+
+            await LoadAsync(1);
+        }
+        finally
+        {
+            _busy = false;
+        }
+    }
+
+    private void Report(Error error)
+    {
+        if (error is ValidationError validation)
+        {
+            _errors.AddRange(validation.Errors.Select(e => e.Description));
+        }
+        else
+        {
+            _errors.Add(error.Description);
         }
     }
 }
