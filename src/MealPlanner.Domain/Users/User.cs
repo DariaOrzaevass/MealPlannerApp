@@ -10,7 +10,7 @@ public sealed class User : Entity<UserId>
     // Private constructor so that the user can only
     // be created using the Create method with validation
     private User(UserId id, string email, string identityId)
-    : base(id)
+        : base(id)
     {
         Email = email;
         IdentityId = identityId;

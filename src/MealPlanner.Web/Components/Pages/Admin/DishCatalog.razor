@@ -23,6 +23,9 @@
             Published dishes
         </label>
         <button @onclick="() => LoadAsync(1)">Search</button>
+        <button class="primary" @onclick="() => _adding = !_adding">
+            @(_adding ? "Hide form" : "Add dish")
+        </button>
     </div>
 
     @if (_message is not null)
@@ -43,14 +46,78 @@
     }
 </div>
 
-<div class="card">
-    <h2>New dish</h2>
+@if (_adding && _options is not null)
+{
+    <div class="card">
+        <h2>New dish</h2>
 
-    <p class="actions">
-        <button class="primary" disabled="@_busy" @onclick="CreateAsync">Create</button>
-        <span class="muted">The dish is created as unpublished.</span>
-    </p>
-</div>
+        <div class="grid-2">
+            <label>Name<input @bind="_newName" /></label>
+            <label>Cost per serving, €<input type="number" step="0.01" @bind="_newCost" /></label>
+            <label>Kilocalories<input type="number" @bind="_newCalories" /></label>
+            <label>Cooking time in minutes<input type="number" @bind="_newCookingTime" /></label>
+            <label>
+                Diet
+                <select @bind="_newDiet">
+                    @foreach (DietType diet in Enum.GetValues<DietType>())
+                    {
+                        <option value="@diet">@Names.Of(diet)</option>
+                    }
+                </select>
+            </label>
+            <label>
+                Cuisine
+                <select @bind="_newCuisine">
+                    @foreach (Cuisine cuisine in Enum.GetValues<Cuisine>())
+                    {
+                        <option value="@cuisine">@Names.Of(cuisine)</option>
+                    }
+                </select>
+            </label>
+        </div>
+
+        <label>Description<input @bind="_newDescription" /></label>
+        <label>Recipe<input @bind="_newRecipe" /></label>
+
+        <h2>Suitable for</h2>
+        <div class="checks">
+            @foreach (MealTypes meal in new[] { MealTypes.Breakfast, MealTypes.Lunch, MealTypes.Dinner, MealTypes.Snack })
+            {
+                <label class="inline">
+                    <input type="checkbox"
+                           checked="@_newSuitableFor.HasFlag(meal)"
+                           @onchange="e => ToggleMeal(meal, e)" />
+                    @MealName(meal)
+                </label>
+            }
+        </div>
+
+        <h2>ingredients</h2>
+        <p class="muted">
+            A dish cannot be published without ingredients, because in this case its allergen
+            set will be empty. A dish like that will incorrectly pass all allergen filters.
+        </p>
+        <details>
+            <summary class="muted">Ingredients selected: @_newIngredients.Count</summary>
+            <div class="checks">
+                @foreach (IngredientOption ingredient in _options.Ingredients)
+                {
+                    <label class="inline">
+                        <input type="checkbox"
+                               checked="@_newIngredients.ContainsKey(ingredient.Id)"
+                               @onchange="e => ToggleIngredient(ingredient.Id, e)" />
+                        @ingredient.Name
+                    </label>
+                }
+            </div>
+        </details>
+
+        <p class="actions">
+            <button class="primary" disabled="@_busy" @onclick="CreateAsync">Create</button>
+            <span class="muted">The dish is created as unpublished.</span>
+        </p>
+    </div>
+}
 
 <div class="card">
     @if (_page is null)
@@ -103,6 +170,7 @@
     private readonly List<string> _errors = [];
     private string? _message;
     private bool _busy;
+    private bool _adding;
 
     private string _search = string.Empty;
     private bool _publishedOnly;
@@ -110,7 +178,7 @@
     private string _newName = string.Empty;
     private string _newDescription = string.Empty;
     private string _newRecipe = string.Empty;
-    private decimal _newCost = 100m;
+    private decimal _newCost = 1m;
     private int _newCalories = 400;
     private int _newCookingTime = 20;
     private DietType _newDiet = DietType.Omnivore;
@@ -140,6 +208,23 @@
         if (result.IsSuccess)
         {
             _page = result.Value;
+        }
+    }
+
+    private void ToggleMeal(MealTypes meal, ChangeEventArgs e) =>
+        _newSuitableFor = e.Value is true ? _newSuitableFor | meal : _newSuitableFor & ~meal;
+
+    private void ToggleIngredient(Guid id, ChangeEventArgs e)
+    {
+        if (e.Value is true)
+        {
+            // The quantity is not edited here, because ingredients are
+            // needed mainly for allergen filtering and similarity calculations
+            _newIngredients[id] = 100m;
+        }
+        else
+        {
+            _newIngredients.Remove(id);
         }
     }
 
@@ -174,6 +259,7 @@
             }
 
             _message = $"Dish «{_newName}» was created. Publish it so it can be used for the meal plan generation.";
+            _adding = false;
             _newName = string.Empty;
             _newIngredients.Clear();
 
@@ -196,4 +282,13 @@
             _errors.Add(error.Description);
         }
     }
+
+    private static string MealName(MealTypes meal) => meal switch
+    {
+        MealTypes.Breakfast => "Breakfast",
+        MealTypes.Lunch => "Lunch",
+        MealTypes.Dinner => "Dinner",
+        MealTypes.Snack => "Snack",
+        _ => meal.ToString()
+    };
 }

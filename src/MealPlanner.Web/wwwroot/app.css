@@ -156,6 +156,8 @@ button:disabled {
     color: var(--error);
 }
 
+.alert ul { margin: 0; padding-left: 1.1rem; }
+
 table {
     width: 100%;
     border-collapse: collapse;
@@ -188,12 +190,19 @@ td.number, th.number { text-align: right; font-variant-numeric: tabular-nums; }
     gap: 0 1.25rem;
 }
 
+.validation-message {
+    color: var(--error);
+    font-size: 0.85rem;
+}
+
 .checks {
     display: flex;
     flex-wrap: wrap;
     gap: 0.35rem 1.25rem;
     margin-bottom: 0.75rem;
 }
+
+.checks label.inline { margin-bottom: 0; }
 
 .actions {
     display: flex;
@@ -203,6 +212,20 @@ td.number, th.number { text-align: right; font-variant-numeric: tabular-nums; }
     margin-top: 1.25rem;
 }
 
+.actions input:not([type="checkbox"]),
+.actions select {
+    width: auto;
+    flex: 1 1 14rem;
+    min-width: 8rem;
+    margin-top: 0;
+}
+
+.alert.info {
+    background: #eef4fb;
+    border: 1px solid #c8d9ee;
+    color: #24486e;
+}
+
 .row-actions {
     display: flex;
     align-items: center;
@@ -210,7 +233,16 @@ td.number, th.number { text-align: right; font-variant-numeric: tabular-nums; }
     white-space: nowrap;
 }
 
-    .row-actions button {
-        padding: 0.25rem 0.6rem;
-        font-size: 0.9rem;
-    }
+.row-actions button {
+    padding: 0.25rem 0.6rem;
+    font-size: 0.9rem;
+}
+
+button.danger {
+    border-color: #d8a6a6;
+    color: var(--error);
+}
+
+button.danger:hover {
+    background: var(--error-bg);
+}
