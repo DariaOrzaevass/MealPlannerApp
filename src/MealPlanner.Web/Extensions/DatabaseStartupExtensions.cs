@@ -1,3 +1,4 @@
+using MealPlanner.Application.Catalog;
 using MealPlanner.Infrastructure.Authentication;
 using MealPlanner.Infrastructure.Database;
 using MealPlanner.Infrastructure.Seeding;
@@ -46,5 +47,19 @@ public static class DatabaseStartupExtensions
         {
             await identitySeeder.SeedAdministratorAsync(adminEmail, adminPassword);
         }
+    }
+
+    // Builds the smapshot of the catalog in advace, therefore first request doesn't need to
+    public static async Task WarmUpCatalogAsync(this WebApplication app)
+    {
+        ArgumentNullException.ThrowIfNull(app);
+
+        // Creates temporary dependency-injection scope
+        await using AsyncServiceScope scope = app.Services.CreateAsyncScope();
+
+        ICatalogSnapshotProvider provider =
+            scope.ServiceProvider.GetRequiredService<ICatalogSnapshotProvider>();
+
+        await provider.GetAsync();
     }
 }

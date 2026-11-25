@@ -7,7 +7,7 @@
     <DockerComposeProjectName>mealplanner</DockerComposeProjectName>
   </PropertyGroup>
   <PropertyGroup>
-    <DockerLaunchAction>LaunchBrowser</DockerLaunchAction>
+    <DockerLaunchAction>None</DockerLaunchAction>
     <DockerServiceName>mealplanner-web</DockerServiceName>
     <DockerServiceUrl>http://localhost:5080</DockerServiceUrl>
   </PropertyGroup>
@@ -18,5 +18,6 @@
     <None Include="docker-compose.yml" />
     <None Include=".dockerignore" />
     <None Include="src\MealPlanner.Web\Components\Layout\MainLayout.razor.css" />
+    <None Include="src\MealPlanner.Web\Components\Layout\ReconnectModal.razor.js" />
   </ItemGroup>
 </Project>
