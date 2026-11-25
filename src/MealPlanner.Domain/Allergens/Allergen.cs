@@ -10,7 +10,7 @@ public sealed class Allergen : Entity<AllergenId>
 {
     // Private constructor so that the allergen can only be created using the Create method with validation
     private Allergen(AllergenId id, string name, string code, int bitPosition)
-    : base(id)
+        : base(id)
     {
         Name = name;
         Code = code;

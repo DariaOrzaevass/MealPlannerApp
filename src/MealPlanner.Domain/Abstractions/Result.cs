@@ -59,8 +59,8 @@ public class Result<TValue> : Result
     // Will not let to read the value if the result is failure, will throw exception
     [NotNull]
     public TValue Value => IsSuccess
-    ? _value!
-    : throw new InvalidOperationException("Cannot read value of the failed result.");
+        ? _value!
+        : throw new InvalidOperationException("Cannot read value of the failed result.");
 
     // Implicit conversion to make it easier to return value
     public static implicit operator Result<TValue>(TValue? value) => Create(value);

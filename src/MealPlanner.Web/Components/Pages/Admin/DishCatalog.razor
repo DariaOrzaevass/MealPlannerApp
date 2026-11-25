@@ -1,0 +1,89 @@
+@page "/admin/dishes"
+@using MealPlanner.Application.Abstractions.Messaging
+@using MealPlanner.Application.Catalog.GetCatalogOptions
+@using MealPlanner.Application.Dishes.GetDishes
+@using MealPlanner.Domain.Abstractions
+@attribute [Authorize(Policy = Policies.Administrator)]
+@rendermode InteractiveServer
+@inject IQueryHandler<GetDishesQuery, DishPageResponse> Dishes
+@inject IQueryHandler<GetCatalogOptionsQuery, CatalogOptionsResponse> Options
+
+<PageTitle>Dish Catalog</PageTitle>
+
+<div class="card">
+    <h1>Dish Catalog</h1>
+    <label class="inline">
+        <input type="checkbox" @bind="_publishedOnly" />
+        Only show published dishes
+    </label>
+</div>
+
+<div class="card">
+    @if (_page is null)
+    {
+        <p class="muted">Loading...</p>
+    }
+    else
+    {
+        <table>
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th class="number">€</th>
+                    <th class="number">Kcal</th>
+                    <th class="number">Cooking time</th>
+                    <th>Diet</th>
+                    <th>Cuisine</th>
+                    <th class="number">Ingredients</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (DishListItemResponse dish in _page.Items)
+                {
+                    <tr>
+                        <td>@dish.Name</td>
+                        <td class="number">@dish.Cost.ToString("0.##")</td>
+                        <td class="number">@dish.Calories</td>
+                        <td class="number">@dish.CookingTimeMinutes</td>
+                        <td>@Names.Of(dish.Diet)</td>
+                        <td>@Names.Of(dish.Cuisine)</td>
+                        <td class="number">@dish.IngredientCount</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+</div>
+
+@code {
+    private DishPageResponse? _page;
+    private CatalogOptionsResponse? _options;
+
+    private string _search = string.Empty;
+    private bool _publishedOnly;
+
+    protected override async Task OnInitializedAsync()
+    {
+        Result<CatalogOptionsResponse> options =
+            await Options.Handle(new GetCatalogOptionsQuery(), CancellationToken.None);
+
+        if (options.IsSuccess)
+        {
+            _options = options.Value;
+        }
+
+        await LoadAsync(1);
+    }
+
+    private async Task LoadAsync(int page)
+    {
+        Result<DishPageResponse> result = await Dishes.Handle(
+            new GetDishesQuery(_search, _publishedOnly ? true : null, page),
+            CancellationToken.None);
+
+        if (result.IsSuccess)
+        {
+            _page = result.Value;
+        }
+    }
+}

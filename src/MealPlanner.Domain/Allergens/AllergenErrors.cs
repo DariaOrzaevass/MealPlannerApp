@@ -14,11 +14,11 @@ public static class AllergenErrors
 
     // Returns an error if the name of the allergen is empty
     public static readonly Error EmptyName =
-    Error.Validation("Allergen.EmptyName", "Allergen name cannot be empty.");
+        Error.Validation("Allergen.EmptyName", "Allergen name cannot be empty.");
 
     // Returns an error if the code of the allergen is empty
     public static readonly Error EmptyCode =
-    Error.Validation("Allergen.EmptyCode", "Allergen code cannot be empty.");
+        Error.Validation("Allergen.EmptyCode", "Allergen code cannot be empty.");
 
     // Returns an error if the bit position of the allergen is out of the range
     public static readonly Error BitPositionOutOfRange =

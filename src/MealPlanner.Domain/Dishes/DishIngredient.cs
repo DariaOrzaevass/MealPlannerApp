@@ -11,10 +11,10 @@ public sealed class DishIngredient
 {
     // Constructor to create a new DishIngredient relationship
     internal DishIngredient(
-    DishId dishId,
-    IngredientId ingredientId,
-    decimal quantity,
-    MeasurementUnit unit)
+        DishId dishId,
+        IngredientId ingredientId,
+        decimal quantity,
+        MeasurementUnit unit)
     {
         DishId = dishId;
         IngredientId = ingredientId;
