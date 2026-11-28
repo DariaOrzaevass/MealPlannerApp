@@ -83,7 +83,7 @@ public sealed class LayeredGraphDijkstraSolver : IMealPlanSolver
             elapsed);
     }
 
-    // Calculates a value to use as a lower bound in comparison.
+    // Calculates a value to use as a lower bound for testing.
     // Weight of the shortest-path without the variety penalty.
     public double LowerBound(PlanningProblem problem, CancellationToken cancellationToken = default)
     {

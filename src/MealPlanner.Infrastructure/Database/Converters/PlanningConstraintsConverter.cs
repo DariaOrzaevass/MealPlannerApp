@@ -11,7 +11,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace MealPlanner.Infrastructure.Database.Converters;
 
-// Converter for the PlanningConstraints for the Entity
+// Converter for PlanningConstraints for the Entity
 // Framework Core to store them as a JSON string
 internal sealed class PlanningConstraintsConverter()
     : ValueConverter<PlanningConstraints, string>(
@@ -41,22 +41,22 @@ internal sealed class PlanningConstraintsConverter()
 
     // Converts PlanningConstraints object into Snapshot and then serializes it
     private static string Serialize(PlanningConstraints constraints) =>
-    JsonSerializer.Serialize(
-        new Snapshot(
-            constraints.Budget.Amount,
-            constraints.Budget.Currency.Code,
-            constraints.DurationDays,
-            [.. constraints.MealsPerDay.Select(m => (int)m)],
-            (int)constraints.Diet,
-            [.. constraints.ExcludedAllergens.Select(a => a.Value)],
-            [.. constraints.DislikedIngredients.Select(i => i.Value)],
-            constraints.MaxRepeatsPerPlan,
-            constraints.MinDaysBetweenRepeats,
-            constraints.MinDailyCalories,
-            constraints.MaxDailyCalories,
-            constraints.MaxCookingTimeMinutes,
-            [.. constraints.PreferredCuisines.Select(c => (int)c)]),
-        Options);
+        JsonSerializer.Serialize(
+            new Snapshot(
+                constraints.Budget.Amount,
+                constraints.Budget.Currency.Code,
+                constraints.DurationDays,
+                [.. constraints.MealsPerDay.Select(m => (int)m)],
+                (int)constraints.Diet,
+                [.. constraints.ExcludedAllergens.Select(a => a.Value)],
+                [.. constraints.DislikedIngredients.Select(i => i.Value)],
+                constraints.MaxRepeatsPerPlan,
+                constraints.MinDaysBetweenRepeats,
+                constraints.MinDailyCalories,
+                constraints.MaxDailyCalories,
+                constraints.MaxCookingTimeMinutes,
+                [.. constraints.PreferredCuisines.Select(c => (int)c)]),
+            Options);
 
     // Deserializes JSON string into PlanningConstraints through Snapshot
     private static PlanningConstraints Deserialize(string json)
@@ -84,7 +84,7 @@ internal sealed class PlanningConstraintsConverter()
     // Value comparison for reliable recognition of changes
     // on every access. Compares serialized JSON to detect changes
     public static ValueComparer<PlanningConstraints> Comparer { get; } = new(
-    (left, right) => Serialize(left!) == Serialize(right!),
-    constraints => Serialize(constraints).GetHashCode(StringComparison.Ordinal),
-    constraints => Deserialize(Serialize(constraints)));
+        (left, right) => Serialize(left!) == Serialize(right!),
+        constraints => Serialize(constraints).GetHashCode(StringComparison.Ordinal),
+        constraints => Deserialize(Serialize(constraints)));
 }

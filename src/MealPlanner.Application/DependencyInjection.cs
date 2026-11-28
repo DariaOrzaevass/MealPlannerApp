@@ -46,7 +46,7 @@ public static class DependencyInjection
 
     // Finds and registers all command/query/domain event handlers
     private static void AddHandlers(IServiceCollection services) =>
-    services.Scan(scan => scan
+        services.Scan(scan => scan
         .FromAssemblies(_applicationAssembly)
         .AddClasses(c => c.AssignableTo(typeof(ICommandHandler<>)), publicOnly: false)
         .AsImplementedInterfaces()

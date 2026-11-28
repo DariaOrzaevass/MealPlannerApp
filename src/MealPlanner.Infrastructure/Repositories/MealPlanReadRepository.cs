@@ -9,16 +9,16 @@ using Microsoft.EntityFrameworkCore;
 
 namespace MealPlanner.Infrastructure.Repositories;
 
-// Projects meal plans in list items using one query. Applying Select before materialization
-// is the main reason of this class existance. Expression is translated in a list of selected
-// database columns and only ten required fields are retrieved instead of the full entity with entries.
+// Projects meal plans in list items using one query. Applying Select before materialization is
+// the main reason of this class existance. Expression is translated in a list of selected database
+// columns and only ten required fields are retrieved instead of the full entity with entries.
 internal sealed class MealPlanReadRepository(ApplicationDbContext context)
     : IMealPlanReadRepository
 {
     public async Task<IReadOnlyCollection<MealPlanSummaryResponse>> GetSummariesAsync(
-    UserId userId,
-    CancellationToken cancellationToken = default) =>
-    await context.Set<MealPlan>()
+        UserId userId,
+        CancellationToken cancellationToken = default) =>
+        await context.Set<MealPlan>()
         .Where(p => p.UserId == userId)
         .OrderByDescending(p => p.CreatedOnUtc)
         .Select(p => new MealPlanSummaryResponse(

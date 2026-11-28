@@ -115,7 +115,7 @@ public sealed class BacktrackingSolver : IMealPlanSolver
 
         // The tree was fully explored, but no feasible solution was found.
         return PlanSolution.Infeasible(
-            $"An exhaustive search ({context.ExploredNodes} nodes) proved:"
+            $"An exhaustive search ({context.ExploredNodes} nodes) proved: "
             + "No feasible solution satisfying all constraints exists.",
             context.ExploredNodes,
             elapsed);

@@ -26,8 +26,8 @@ internal sealed class ReplaceDishCommandHandler(
     : ICommandHandler<ReplaceDishCommand, ReplaceDishResponse>
 {
     public async Task<Result<ReplaceDishResponse>> Handle(
-    ReplaceDishCommand command,
-    CancellationToken cancellationToken)
+        ReplaceDishCommand command,
+        CancellationToken cancellationToken)
     {
         var planId = MealPlanId.From(command.MealPlanId);
 

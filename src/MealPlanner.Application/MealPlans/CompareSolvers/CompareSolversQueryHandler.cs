@@ -53,10 +53,6 @@ internal sealed class CompareSolversQueryHandler(
             return Result.Failure<IReadOnlyCollection<SolverComparisonRow>>(PlanningErrors.NoCandidates);
         }
 
-        // Uses same heap arity as Dijkstra solver in this comparison, so
-        // lower bound and the solver's shortest-path calculation are consistent
-        double lowerBound = LowerBound(problem, cancellationToken);
-
         var rows = new List<SolverComparisonRow>(solvers.Available.Count);
 
         foreach (PlannerAlgorithm algorithm in solvers.Available.Order())
@@ -70,23 +66,10 @@ internal sealed class CompareSolversQueryHandler(
                 continue;
             }
 
-            rows.Add(Run(algorithm, solver.Value, problem, spec.Value, lowerBound, cancellationToken));
+            rows.Add(Run(algorithm, solver.Value, problem, spec.Value, cancellationToken));
         }
 
         return rows;
-    }
-
-    // Shortest-path weight. The algorithm comparison uses this value as a lower bound
-    private double LowerBound(PlanningProblem problem, CancellationToken cancellationToken)
-    {
-        Result<IMealPlanSolver> created = solvers.Create(PlannerAlgorithm.LayeredGraphDijkstra);
-
-        if (created.IsFailure || created.Value is not LayeredGraphDijkstraSolver dijkstra)
-        {
-            return double.PositiveInfinity;
-        }
-
-        return dijkstra.LowerBound(problem, cancellationToken);
     }
 
     private static SolverComparisonRow Run(
@@ -94,7 +77,6 @@ internal sealed class CompareSolversQueryHandler(
         IMealPlanSolver solver,
         PlanningProblem problem,
         PlanningSpec spec,
-        double lowerBound,
         CancellationToken cancellationToken)
     {
         PlanSolution solution = solver.Solve(problem, cancellationToken);
@@ -113,8 +95,7 @@ internal sealed class CompareSolversQueryHandler(
                 DiversityIndex: 0,
                 ElapsedMs: (long)solution.Elapsed.TotalMilliseconds,
                 ExploredNodes: solution.ExploredNodes,
-                IsProvenOptimal: false,
-                lowerBound);
+                IsProvenOptimal: false);
         }
 
         return new SolverComparisonRow(
@@ -127,7 +108,6 @@ internal sealed class CompareSolversQueryHandler(
             DiversityIndex: solution.DiversityIndex,
             ElapsedMs: (long)solution.Elapsed.TotalMilliseconds,
             ExploredNodes: solution.ExploredNodes,
-            IsProvenOptimal: solution.IsProvenOptimal,
-            lowerBound);
+            IsProvenOptimal: solution.IsProvenOptimal);
     }
 }

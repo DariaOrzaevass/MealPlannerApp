@@ -27,8 +27,8 @@ internal static class SeedData
     ];
 
     // Reference ingredient. Price of 100 grams is in euro cents.
-    // Calories also per 100 grams. Also stores typical amount
-    // of the ingredient used in one serving.
+    // Calories are also specified per 100 grams. Also stores
+    // typical amount of the ingredient used in one serving.
     public sealed record IngredientSeed(
         string Name,
         IngredientCategory Category,
@@ -146,11 +146,11 @@ internal static class SeedData
     // manually would create a second source of truth. Sooner or later,
     // a dish containing chicken would end up being marked as vegetarian.
     public sealed record DishSeed(
-    string Name,
-    MealTypes SuitableFor,
-    Cuisine Cuisine,
-    int CookingTimeMinutes,
-    string[] CoreIngredients);
+        string Name,
+        MealTypes SuitableFor,
+        Cuisine Cuisine,
+        int CookingTimeMinutes,
+        string[] CoreIngredients);
 
     private static DishSeed D(
         string name,

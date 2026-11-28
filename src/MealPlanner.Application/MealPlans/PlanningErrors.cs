@@ -5,7 +5,7 @@ using MealPlanner.Domain.Abstractions;
 
 namespace MealPlanner.Application.MealPlans;
 
-// Errors occuring in conversion of damain planning constraints into planning
+// Errors occuring in conversion of domain planning constraints into planning
 // problem. They are separate from MealPlanErrors, because do not represent
 // violations of domain rules, but failures of conversion process.
 public static class PlanningErrors
@@ -42,7 +42,7 @@ public static class PlanningErrors
     // The solver completed the search and proved that no solution exists
     public static readonly Error Infeasible = Error.Problem(
         "Planning.Infeasible",
-        "It is impossible to generate a plan with specidfied constraints.");
+        "It is impossible to generate a plan with specified constraints.");
 
     // The plan references an unpublished dish
     public static readonly Error DishOutOfCatalog = Error.Problem(

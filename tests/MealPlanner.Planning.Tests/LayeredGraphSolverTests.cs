@@ -9,8 +9,8 @@ using MealPlanner.Planning.Tests.Models;
 
 namespace MealPlanner.Planning.Tests;
 
-// Tests for LayeredGraphSolver
-public class LayeredGraphSolverTests
+// Tests for LayeredGraphDijkstraSolver
+public class LayeredGraphDijkstraSolverTests
 {
     // Most tests use this standard schedule
     private static readonly MealKinds[] _threeMeals =

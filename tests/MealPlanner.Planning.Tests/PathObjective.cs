@@ -10,5 +10,5 @@ namespace MealPlanner.Planning.Tests;
 internal static class PathObjective
 {
     public static double Evaluate(PlanningProblem problem, IReadOnlyList<int> assignment) =>
-    ObjectiveFunction.EvaluateWithoutVariety(problem, [.. assignment]);
+        ObjectiveFunction.EvaluateWithoutVariety(problem, [.. assignment]);
 }

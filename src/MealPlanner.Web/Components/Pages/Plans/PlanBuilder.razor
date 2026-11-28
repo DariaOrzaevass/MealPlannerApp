@@ -72,27 +72,27 @@ presses buttons and the result must apper without the reload. *@
             </label>
 
             <label>
-                Maximum number of dish repetitions
+                Max number of dish repetitions
                 <input type="number" min="1" @bind="_maxRepeats" />
             </label>
 
             <label>
-                Minimum number of days between repetitions
+                Min days between repetitions
                 <input type="number" min="0" @bind="_minGap" />
             </label>
 
             <label>
-                Minimum daily calories
+                Min daily calories
                 <input type="number" min="0" placeholder="no limit" @bind="_minCalories" />
             </label>
 
             <label>
-                Maximum daily calories
+                Max daily calories
                 <input type="number" min="0" placeholder="no limit" @bind="_maxCalories" />
             </label>
 
             <label>
-                Maximum cooking time in minutes
+                Max cooking time in minutes
                 <input type="number" min="1" placeholder="no limit" @bind="_maxCookingTime" />
             </label>
         </div>
@@ -182,13 +182,6 @@ presses buttons and the result must apper without the reload. *@
         <p class="muted">
             The same problem, four solvers. Nothing is saved.
         </p>
-        @if (_comparison.Count > 0)
-        {
-            <p class="muted">
-                Lower bound (shortest path without the variety term):
-                @FormatLowerBound(_comparison.First().LowerBound)
-            </p>
-        }
 
         <table>
             <thead>
@@ -354,9 +347,6 @@ presses buttons and the result must apper without the reload. *@
             _busy = false;
         }
     }
-
-    private static string FormatLowerBound(double bound) =>
-    double.IsPositiveInfinity(bound) ? "no path" : bound.ToString("0.000");
 
     private void Report(Error error)
     {
